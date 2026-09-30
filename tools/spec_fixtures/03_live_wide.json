@@ -1,0 +1,20 @@
+{
+  "case_id": "live_for_wide_window",
+  "request": {"coin_code": "ETH", "coin_name": null, "id_number": null, "fiat": "EUR", "start": "20-09-2026", "end": "24-09-2026", "live_failure": false},
+  "now": "2026-09-24T00:00:00.000Z",
+  "input_headers": ["Date", "Open", "High", "Low", "Close", "Volume", "Market Cap", "Time Open", "Time High", "Time Low", "Time Close"],
+  "snapshot": {
+    "generated_at": "2026-09-24T00:00:00.000Z",
+    "data": {"id": 1027, "symbol": "ETH", "name": "Ethereum", "quotes": [
+      {"timeOpen": "2026-09-23T00:00:00.000Z", "timeHigh": "2026-09-23T12:00:00.000Z", "timeLow": "2026-09-23T06:00:00.000Z", "timeClose": "2026-09-23T23:59:59.999Z", "quote": {"open": 1, "high": 1, "low": 1, "close": 1, "volume": 1, "marketCap": 1}}
+    ]}
+  },
+  "live": {
+    "status": {"error_code": 0, "error_message": null},
+    "data": {"id": 1027, "symbol": "ETH", "name": "Ethereum", "quotes": [
+      {"timeOpen": "2026-09-20T00:00:00.000Z", "timeHigh": "2026-09-20T12:00:00.000Z", "timeLow": "2026-09-20T06:00:00.000Z", "timeClose": "2026-09-20T23:59:59.999Z", "quote": {"open": 2.0, "high": 2.0, "low": 2.0, "close": 2.0, "volume": 2.0, "marketCap": 2.0}},
+      {"timeOpen": "2026-09-24T00:00:00.000Z", "timeHigh": "2026-09-24T12:00:00.000Z", "timeLow": "2026-09-24T06:00:00.000Z", "timeClose": "2026-09-24T23:59:59.999Z", "quote": {"open": 3.0, "high": 3.0, "low": 3.0, "close": 3.0, "volume": 3.0, "marketCap": 3.0}}
+    ]}
+  },
+  "expected": {"source": "live_response", "markers": ["live_response"], "coin_id": 1027, "fiat_id": 2790, "row_count": 2}
+}

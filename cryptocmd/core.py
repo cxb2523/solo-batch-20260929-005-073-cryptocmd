@@ -2,27 +2,97 @@
 # -*- coding: utf-8 -*-
 # __author__ = 'Rohit Gupta'
 
-"""
-Cryptocurrency price History from coinmarketcap.com
-"""
+"""Cryptocurrency price history from coinmarketcap.com."""
 
 from __future__ import print_function
 
-__all__ = ["CmcScraper"]
+__all__ = ["CmcScraper", "CryptoData"]
 
-import os
 import csv
-import tablib
+import inspect
+import os
 import warnings
-from datetime import datetime
-from .utils import download_coin_data, InvalidParameters
+
+import tablib
+
+from .spec import (
+    SpecIntegrityError,
+    canonical_headers,
+    get_rule,
+    parse_spec_date,
+    parse_quote_table,
+)
+from .utils import InvalidParameters, download_coin_data
 
 
-class CmcScraper(object):
-    """
-    Scrape cryptocurrency historical market price data from coinmarketcap.com
+class CryptoData(object):
+    """Container preserving the historical ten-field positional constructor."""
 
-    """
+    def __init__(
+        self,
+        coin_code,
+        start_date,
+        end_date,
+        all_time,
+        order_ascending,
+        fiat,
+        coin_name,
+        id_number,
+        headers,
+        rows,
+        *,
+        aliases=(),
+    ):
+        self.coin_code = coin_code
+        self.start_date = start_date
+        self.end_date = end_date
+        self.all_time = all_time
+        self.order_ascending = order_ascending
+        self.fiat = fiat
+        self.coin_name = coin_name
+        self.id_number = id_number
+        self.headers = headers
+        self.rows = rows
+        self.aliases = tuple(aliases)
+        self.source_decision = {}
+
+    def __repr__(self):
+        return "<CryptoData coin_code:{}, start_date:{}, end_date:{}, aliases:{}>".format(
+            self.coin_code, self.start_date, self.end_date, self.aliases
+        )
+
+
+def validate_crypto_data_signature():
+    """Reject any change that breaks the legacy positional CryptoData contract."""
+    parameters = list(inspect.signature(CryptoData.__init__).parameters.values())[1:]
+    positional = [
+        parameter.name
+        for parameter in parameters
+        if parameter.kind
+        in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
+    ]
+    expected = get_rule("compatibility.legacy_fields_must_remain")
+    keyword_only = [
+        parameter.name
+        for parameter in parameters
+        if parameter.kind == inspect.Parameter.KEYWORD_ONLY
+    ]
+    if (
+        positional != expected
+        or keyword_only != get_rule("compatibility.new_kw_only_fields")
+        or len(positional) != get_rule("compatibility.maximum_positional_arity")
+    ):
+        raise SpecIntegrityError(
+            "CryptoData legacy signature drift; "
+            + get_rule("compatibility.crypto_data_legacy_signature")
+        )
+
+
+validate_crypto_data_signature()
+
+
+class CmcScraper(CryptoData):
+    """Scrape cryptocurrency historical market price data from CoinMarketCap."""
 
     def __init__(
         self,
@@ -31,24 +101,10 @@ class CmcScraper(object):
         end_date=None,
         all_time=False,
         order_ascending=False,
-        fiat="USD",
+        fiat=get_rule("fiat_ids.default_listing_convert_code"),
         coin_name=None,
         id_number=None,
     ):
-        """
-        :param coin_code: coin code of cryptocurrency e.g. btc. Will be ignored if using id_number.
-        :param start_date: date since when to scrape data (in the format of dd-mm-yyyy)
-        :param end_date: date to which scrape the data (in the format of dd-mm-yyyy).
-            Defaults to today. CMC only returns completed daily candles, so the latest
-            candle returned will always be the last completed UTC day.
-        :param all_time: 'True' if need data of all time for respective cryptocurrency
-        :param order_ascending: data ordered by 'Date' in ascending order (i.e. oldest first).
-        :param fiat: fiat code eg. USD, EUR
-        :param coin_name: coin name in case of many coins with same code e.g. sol -> solana, solcoin
-        :param id_number: id number for the a cryptocurrency on the coinmarketcap.com.
-            Will override coin_code and coin_name when provided.
-        """
-
         self.coin_code = coin_code
         self.start_date = start_date
         self.end_date = end_date
@@ -56,23 +112,12 @@ class CmcScraper(object):
         self.order_ascending = order_ascending
         self.fiat = fiat
         self.coin_name = coin_name
-        self.headers = [
-            "Date",
-            "Open",
-            "High",
-            "Low",
-            "Close",
-            "Volume",
-            "Market Cap",
-            "Time Open",
-            "Time High",
-            "Time Low",
-            "Time Close",
-        ]
+        self.headers = list(canonical_headers())
         self.rows = []
         self.id_number = id_number
+        self.aliases = ()
+        self.source_decision = {}
 
-        # enable all_time download if start_time or end_time is not given
         if not (self.start_date and self.end_date):
             self.all_time = True
 
@@ -82,21 +127,12 @@ class CmcScraper(object):
             )
 
     def __repr__(self):
-        return (
-            "<CmcScraper coin_code:{}, start_date:{}, end_date:{}, all_time:{}>".format(
-                self.coin_code, self.start_date, self.end_date, self.all_time
-            )
+        return "<CmcScraper coin_code:{}, start_date:{}, end_date:{}, all_time:{}>".format(
+            self.coin_code, self.start_date, self.end_date, self.all_time
         )
 
     def _download_data(self, **kwargs):
-        """
-        This method downloads the data.
-        :param forced: (optional) if ``True``, data will be re-downloaded.
-        :return:
-        """
-
         forced = kwargs.get("forced")
-
         if self.rows and not forced:
             return
 
@@ -111,48 +147,25 @@ class CmcScraper(object):
             self.coin_name,
             self.id_number,
         )
-
-        for _row in coin_data["data"]["quotes"]:
-            _row_quote = _row["quote"]
-            date = datetime.strptime(
-                _row["timeOpen"], "%Y-%m-%dT%H:%M:%S.%fZ"
-            ).strftime("%d-%m-%Y")
-
-            row = [
-                date,
-                _row_quote["open"],
-                _row_quote["high"],
-                _row_quote["low"],
-                _row_quote["close"],
-                _row_quote["volume"],
-                _row_quote["marketCap"],
-                _row["timeOpen"],
-                _row["timeHigh"],
-                _row["timeLow"],
-                _row["timeClose"],
-            ]
-
-            self.rows.insert(0, row)
+        source = coin_data.get("_cryptocmd", {}).get("source")
+        table = parse_quote_table(coin_data, source)
+        self.headers = list(table.headers)
+        self.rows = [list(row) for row in table.rows]
+        self.aliases = tuple(coin_data.get("_cryptocmd", {}).get("aliases", ()))
+        self.source_decision = coin_data.get("_cryptocmd", {})
 
         if self.rows:
             self.end_date, self.start_date = self.rows[0][0], self.rows[-1][0]
 
         if self.order_ascending:
-            self.rows.sort(key=lambda x: datetime.strptime(x[0], "%d-%m-%Y"))
+            self.rows.sort(
+                key=lambda row: parse_spec_date(row[0]).date()
+            )
 
     def get_data(self, format="", verbose=False, **kwargs):
-        """
-        This method returns the downloaded data in specified format.
-        :param format: extension name of data format. Available: json, xls, yaml, csv, dbf, tsv, html, latex, xlsx, ods
-        :param verbose: (optional) Flag to enable verbose only.
-        :param kwargs: Optional arguments that data downloader takes.
-        :return:
-        """
-
         self._download_data(**kwargs)
         if verbose:
             print(*self.headers, sep=", ")
-
             for row in self.rows:
                 print(*row, sep=", ")
         elif format:
@@ -161,17 +174,9 @@ class CmcScraper(object):
             for row in self.rows:
                 data.append(row)
             return data.export(format)
-        else:
-            return self.headers, self.rows
+        return self.headers, self.rows
 
     def get_dataframe(self, date_as_index=False, **kwargs):
-        """
-        This gives scraped data as DataFrame.
-        :param date_as_index: make 'Date' as index and remove 'Date' column.
-        :param kwargs: Optional arguments that data downloader takes.
-        :return: DataFrame of the downloaded data.
-        """
-
         try:
             import pandas as pd
         except ImportError:
@@ -179,61 +184,38 @@ class CmcScraper(object):
 
         if pd is None:
             raise NotImplementedError(
-                "DataFrame Format requires 'pandas' to be installed."
-                "Try : pip install pandas"
+                "DataFrame Format requires 'pandas' to be installed. Try : pip install pandas"
             )
 
         self._download_data(**kwargs)
-
         dataframe = pd.DataFrame(data=self.rows, columns=self.headers)
-
-        # convert 'Date' column to datetime type
+        date_format = get_rule("time.date_output_format")
         dataframe["Date"] = pd.to_datetime(
-            dataframe["Date"], format="%d-%m-%Y", dayfirst=True
+            dataframe["Date"], format=date_format, dayfirst=date_format.startswith("%d")
         )
-
         if date_as_index:
-            # set 'Date' column as index and drop the the 'Date' column.
             dataframe.set_index("Date", inplace=True)
-
         return dataframe
 
     def export_csv(self, csv_name=None, csv_path=None, **kwargs):
-        """
-        This exports scraped data into a csv.
-        :param csv_name: (optional) name of csv file.
-        :param csv_path: (optional) path to where export csv file.
-        :param kwargs: Optional arguments that data downloader takes.
-        :return:
-        """
         warnings.warn(
             "export_csv will be deprecated; Use 'export' method instead, e.g. export('csv')",
             PendingDeprecationWarning,
             stacklevel=2,
         )
-
         self._download_data(**kwargs)
-
         if csv_path is None:
-            # Export in current directory if path not specified
             csv_path = os.getcwd()
-
         if csv_name is None:
-            # Make name fo file in format of {coin_code}_{fiat}_{start_date}_{end_date}.csv
             csv_name = "{0}_{1}_{2}_{3}.csv".format(
                 self.coin_code, self.fiat, self.start_date, self.end_date
             )
-
         if not csv_name.endswith(".csv"):
             csv_name += ".csv"
-
         _csv = "{0}/{1}".format(csv_path, csv_name)
-
         try:
             with open(_csv, "w", newline="", encoding="utf-8") as csvfile:
-                writer = csv.writer(
-                    csvfile, delimiter=",", quoting=csv.QUOTE_NONNUMERIC
-                )
+                writer = csv.writer(csvfile, delimiter=",", quoting=csv.QUOTE_NONNUMERIC)
                 writer.writerow(self.headers)
                 for data in self.rows:
                     writer.writerow(data)
@@ -242,40 +224,26 @@ class CmcScraper(object):
             print("I/O error({0}): {1}".format(errno, strerror))
 
     def export(self, format, name=None, path=None, **kwargs):
-        """
-        Exports the data to specified file format
-        :param format: extension name of file format. Available: json, xls, yaml, csv, dbf, tsv, html, latex, xlsx, ods
-        :param name: (optional) name of file.
-        :param path: (optional) output file path.
-        :param kwargs: Optional arguments that data downloader takes.
-        :return:
-        """
-
         data = self.get_data(format, **kwargs)
-
         if path is None:
-            # Export in current directory if path not specified
             path = os.getcwd()
-
         if name is None:
-            # Make name of file in format: {coin_code}_{fiat}_{start_date}_{end_date}.csv
             name = "{0}_{1}-{2}_{3}".format(
                 self.coin_code, self.fiat, self.start_date, self.end_date
             )
-
         if not name.endswith(".{}".format(format)):
             name += ".{}".format(format)
-
         _file = "{0}/{1}".format(path, name)
-
         try:
-            with open(_file, "wb") as f:
+            with open(_file, "wb") as output:
                 if isinstance(data, str):
-                    f.write(data.encode("utf-8"))
+                    output.write(data.encode("utf-8"))
                 else:
-                    f.write(data)
+                    output.write(data)
         except IOError as err:
             errno, strerror = err.args
             print("I/O error({0}): {1}".format(errno, strerror))
         except Exception as err:
             print("format: {0}, Error: {1}".format(format, err))
+
+

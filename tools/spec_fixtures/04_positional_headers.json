@@ -1,0 +1,14 @@
+{
+  "case_id": "positional_header_fallback",
+  "request": {"coin_code": "5426", "coin_name": null, "id_number": 5426, "fiat": "usd", "start": "24-09-2026", "end": "24-09-2026"},
+  "now": "2026-09-24T00:00:00.000Z",
+  "input_headers": ["when", "o", "h", "l", "c", "v", "cap", "to", "th", "tl", "tc"],
+  "snapshot": {
+    "generated_at": "2026-09-24T00:00:00.000Z",
+    "data": {"id": 5426, "symbol": "SOL", "name": "Solana", "quotes": [
+      {"timeOpen": "2026-09-24T00:00:00.000Z", "timeHigh": "2026-09-24T12:00:00.000Z", "timeLow": "2026-09-24T06:00:00.000Z", "timeClose": "2026-09-24T23:59:59.999Z", "quote": {"open": 100.0, "high": 101.0, "low": 99.0, "close": 100.5, "volume": 42.0, "marketCap": 9000.0}}
+    ]}
+  },
+  "live": null,
+  "expected": {"source": "builtin_snapshot", "markers": ["builtin_snapshot"], "coin_id": 5426, "fiat_id": 2781, "first_header_sources": ["spec_column_positional_fallback"]}
+}

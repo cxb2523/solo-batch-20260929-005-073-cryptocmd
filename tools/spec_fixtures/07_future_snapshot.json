@@ -1,0 +1,14 @@
+{
+  "case_id": "future_snapshot_never_fallback",
+  "request": {"coin_code": "btc", "coin_name": null, "id_number": 1, "fiat": "usd", "start": "24-09-2026", "end": "24-09-2026", "live_failure": true},
+  "now": "2026-09-24T00:00:00.000Z",
+  "input_headers": ["Date", "Open", "High", "Low", "Close", "Volume", "Market Cap", "Time Open", "Time High", "Time Low", "Time Close"],
+  "snapshot": {
+    "generated_at": "2026-09-25T00:00:00.000Z",
+    "data": {"id": 1, "symbol": "BTC", "name": "Bitcoin", "quotes": [
+      {"timeOpen": "2026-09-24T00:00:00.000Z", "timeHigh": "2026-09-24T12:00:00.000Z", "timeLow": "2026-09-24T06:00:00.000Z", "timeClose": "2026-09-24T23:59:59.999Z", "quote": {"open": 50500.0, "high": 51500.0, "low": 50000.0, "close": 51000.0, "volume": 1100000.0, "marketCap": 910000000000.0}}
+    ]}
+  },
+  "live": null,
+  "expected": {"error": "InvalidSpecResponse"}
+}

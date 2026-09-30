@@ -1,0 +1,1344 @@
+<!doctype html><html><head><meta charset=utf-8><title>spec replay</title><style>body{font:14px/1.5 system-ui,sans-serif;margin:2rem}details{margin:1rem 0;border:1px solid #ccc;padding:1rem}pre{white-space:pre-wrap;overflow-wrap:anywhere}table{border-collapse:collapse;width:100%;margin:1rem 0}td,th{border:1px solid #ccc;padding:.5rem;vertical-align:top}h2 span{font-size:.8rem;color:#fff;background:#070;padding:.2rem .4rem;border-radius:4px}.toc li{margin:.25rem}</style></head><body><h1>cryptocmd 规格回放对照</h1><p>strict=True</p><nav class=toc><ul><li><a href=#case-snapshot_preferred_conflict>snapshot_preferred_conflict</a></li><li><a href=#case-snapshot_defaulted_fields>snapshot_defaulted_fields</a></li><li><a href=#case-live_for_wide_window>live_for_wide_window</a></li><li><a href=#case-positional_header_fallback>positional_header_fallback</a></li><li><a href=#case-negative_window_rejected>negative_window_rejected</a></li><li><a href=#case-stale_snapshot_live_failure_fallback>stale_snapshot_live_failure_fallback</a></li><li><a href=#case-future_snapshot_never_fallback>future_snapshot_never_fallback</a></li></ul></nav><section><h2 id="case-snapshot_preferred_conflict">snapshot_preferred_conflict <span>PASS</span></h2><table><thead><tr><th>路径</th><th>结论</th><th>取值</th><th>函数与依据</th></tr></thead><tbody><tr><td>coin_alias</td><td>PASS</td><td><pre>{
+  &quot;symbol&quot;: &quot;BTC&quot;,
+  &quot;name&quot;: &quot;Bitcoin&quot;,
+  &quot;id&quot;: 1,
+  &quot;aliases&quot;: [
+    &quot;bitcoin&quot;,
+    &quot;btc&quot;,
+    &quot;xbt&quot;,
+    &quot;bit coin&quot;
+  ],
+  &quot;source&quot;: &quot;coins.aliases&quot;
+}</pre></td><td><a href="#fn-resolve_coin">resolve_coin</a> <code>spec:normalization.order=[&#x27;coin_alias&#x27;, &#x27;column_name&#x27;]</code><br><a href="#fn-resolve_coin">resolve_coin</a> <code>spec:normalization.order=[&#x27;coin_alias&#x27;, &#x27;column_name&#x27;]</code></td></tr><tr><td>fiat_id</td><td>PASS</td><td><pre>{
+  &quot;code&quot;: &quot;USD&quot;,
+  &quot;id&quot;: 2781,
+  &quot;source&quot;: &quot;fiat_ids.aliases&quot;
+}</pre></td><td><a href="#fn-resolve_fiat">resolve_fiat</a> <code>spec:fiat_ids.priority=[&#x27;exact_input_case_insensitive&#x27;, &#x27;declared_alias_case_insensitive&#x27;]</code><br><a href="#fn-resolve_fiat">resolve_fiat</a> <code>spec:fiat_ids.priority=[&#x27;exact_input_case_insensitive&#x27;, &#x27;declared_alias_case_insensitive&#x27;]</code></td></tr><tr><td>request_window</td><td>PASS</td><td><pre>{
+  &quot;start&quot;: &quot;23-09-2026&quot;,
+  &quot;end&quot;: &quot;24-09-2026&quot;,
+  &quot;span_days&quot;: 1,
+  &quot;time_start&quot;: 1790035200,
+  &quot;time_end&quot;: 1790208000,
+  &quot;pages&quot;: 1
+}</pre></td><td><a href="#fn-validate_request_window">validate_request_window</a> <code>spec:windows.upstream_time_start_boundary=&#x27;exclusive&#x27;; spec:windows.upstream_time_end_boundary=&#x27;inclusive&#x27;</code><br><a href="#fn-validate_request_window">validate_request_window</a> <code>spec:windows.same_day_span_is_valid=True</code></td></tr><tr><td>timestamp_unit</td><td>PASS</td><td><pre>{
+  &quot;seconds&quot;: 1790035200
+}</pre></td><td><a href="#fn-validate_unix_timestamp">validate_unix_timestamp</a> <code>spec:time.timestamp_unit=&#x27;second&#x27;</code><br><a href="#fn-validate_unix_timestamp">validate_unix_timestamp</a> <code>spec:time.timestamp_kind=&#x27;unix_integer&#x27;</code></td></tr><tr><td>snapshot_path</td><td>PASS</td><td><pre>{
+  &quot;source&quot;: &quot;builtin_snapshot&quot;,
+  &quot;headers&quot;: [
+    &quot;Date&quot;,
+    &quot;Open&quot;,
+    &quot;High&quot;,
+    &quot;Low&quot;,
+    &quot;Close&quot;,
+    &quot;Volume&quot;,
+    &quot;Market Cap&quot;,
+    &quot;Time Open&quot;,
+    &quot;Time High&quot;,
+    &quot;Time Low&quot;,
+    &quot;Time Close&quot;
+  ],
+  &quot;rows&quot;: [
+    [
+      &quot;24-09-2026&quot;,
+      50500.0,
+      51500.0,
+      50000.0,
+      51000.0,
+      1100000.0,
+      910000000000.0,
+      &quot;2026-09-24T00:00:00.000Z&quot;,
+      &quot;2026-09-24T12:00:00.000Z&quot;,
+      &quot;2026-09-24T06:00:00.000Z&quot;,
+      &quot;2026-09-24T23:59:59.999Z&quot;
+    ],
+    [
+      &quot;23-09-2026&quot;,
+      50000.0,
+      51000.0,
+      49000.0,
+      50500.0,
+      1000000.0,
+      900000000000.0,
+      &quot;2026-09-23T00:00:00.000Z&quot;,
+      &quot;2026-09-23T12:00:00.000Z&quot;,
+      &quot;2026-09-23T06:00:00.000Z&quot;,
+      &quot;2026-09-23T23:59:59.999Z&quot;
+    ]
+  ],
+  &quot;markers&quot;: [],
+  &quot;field_sources&quot;: {
+    &quot;date&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;open&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;high&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;low&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;close&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;volume&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;market_cap&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_open&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_high&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_low&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_close&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ]
+  }
+}</pre></td><td><a href="#fn-parse_quote_table">parse_quote_table</a> <code>spec:windows.row_order=&#x27;descending_by_quote_date&#x27;</code><br><a href="#fn-parse_quote_table">parse_quote_table</a> <code>spec:source_policy.snapshot_marker=&#x27;builtin_snapshot&#x27;</code></td></tr><tr><td>live_path</td><td>PASS</td><td><pre>{
+  &quot;source&quot;: &quot;live_response&quot;,
+  &quot;headers&quot;: [
+    &quot;Date&quot;,
+    &quot;Open&quot;,
+    &quot;High&quot;,
+    &quot;Low&quot;,
+    &quot;Close&quot;,
+    &quot;Volume&quot;,
+    &quot;Market Cap&quot;,
+    &quot;Time Open&quot;,
+    &quot;Time High&quot;,
+    &quot;Time Low&quot;,
+    &quot;Time Close&quot;
+  ],
+  &quot;rows&quot;: [
+    [
+      &quot;24-09-2026&quot;,
+      50599.0,
+      51500.0,
+      50000.0,
+      51000.0,
+      1100000.0,
+      910000000000.0,
+      &quot;2026-09-24T00:00:00.000Z&quot;,
+      &quot;2026-09-24T12:00:00.000Z&quot;,
+      &quot;2026-09-24T06:00:00.000Z&quot;,
+      &quot;2026-09-24T23:59:59.999Z&quot;
+    ],
+    [
+      &quot;23-09-2026&quot;,
+      50000.0,
+      51000.0,
+      49000.0,
+      50500.0,
+      1000000.0,
+      900000000000.0,
+      &quot;2026-09-23T00:00:00.000Z&quot;,
+      &quot;2026-09-23T12:00:00.000Z&quot;,
+      &quot;2026-09-23T06:00:00.000Z&quot;,
+      &quot;2026-09-23T23:59:59.999Z&quot;
+    ]
+  ],
+  &quot;markers&quot;: [],
+  &quot;field_sources&quot;: {
+    &quot;date&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;open&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;high&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;low&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;close&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;volume&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;market_cap&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_open&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_high&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_low&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_close&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ]
+  }
+}</pre></td><td><a href="#fn-parse_quote_table">parse_quote_table</a> <code>spec:windows.row_order=&#x27;descending_by_quote_date&#x27;</code><br><a href="#fn-parse_quote_table">parse_quote_table</a> <code>spec:source_policy.live_marker=&#x27;live_response&#x27;</code></td></tr><tr><td>snapshot_vs_live</td><td>PASS</td><td><pre>{
+  &quot;source&quot;: &quot;builtin_snapshot&quot;,
+  &quot;markers&quot;: [
+    &quot;builtin_snapshot&quot;,
+    &quot;snapshot_conflict&quot;
+  ],
+  &quot;conflicts&quot;: [
+    &quot;Open[0]: snapshot=50500.0 live=50599.0&quot;
+  ],
+  &quot;default_records&quot;: [],
+  &quot;row_count&quot;: 2,
+  &quot;rows&quot;: [
+    [
+      &quot;24-09-2026&quot;,
+      50500.0,
+      51500.0,
+      50000.0,
+      51000.0,
+      1100000.0,
+      910000000000.0,
+      &quot;2026-09-24T00:00:00.000Z&quot;,
+      &quot;2026-09-24T12:00:00.000Z&quot;,
+      &quot;2026-09-24T06:00:00.000Z&quot;,
+      &quot;2026-09-24T23:59:59.999Z&quot;
+    ],
+    [
+      &quot;23-09-2026&quot;,
+      50000.0,
+      51000.0,
+      49000.0,
+      50500.0,
+      1000000.0,
+      900000000000.0,
+      &quot;2026-09-23T00:00:00.000Z&quot;,
+      &quot;2026-09-23T12:00:00.000Z&quot;,
+      &quot;2026-09-23T06:00:00.000Z&quot;,
+      &quot;2026-09-23T23:59:59.999Z&quot;
+    ]
+  ]
+}</pre></td><td><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.complete_coverage_required=True</code><br><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.snapshot_preferred_max_request_span_days=1</code><br><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.snapshot_fresh_max_age_days=7</code><br><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.conflict_winner=&#x27;snapshot&#x27;</code></td></tr><tr><td>column_name</td><td>PASS</td><td><pre>{
+  &quot;headers&quot;: [
+    &quot;Date&quot;,
+    &quot;Open&quot;,
+    &quot;High&quot;,
+    &quot;Low&quot;,
+    &quot;Close&quot;,
+    &quot;Volume&quot;,
+    &quot;Market Cap&quot;,
+    &quot;Time Open&quot;,
+    &quot;Time High&quot;,
+    &quot;Time Low&quot;,
+    &quot;Time Close&quot;
+  ],
+  &quot;sources&quot;: [
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;
+  ]
+}</pre></td><td><a href="#fn-normalize_column_headers">normalize_column_headers</a> <code>spec:normalization.order=[&#x27;coin_alias&#x27;, &#x27;column_name&#x27;]</code><br><a href="#fn-normalize_column_headers">normalize_column_headers</a> <code>spec:normalization.fallback_order=[&#x27;mapped_path&#x27;, &#x27;positional_header&#x27;, &#x27;reject&#x27;]</code></td></tr><tr><td>crypto_data_compatibility</td><td>PASS</td><td><pre>{
+  &quot;aliases&quot;: [
+    &quot;btc&quot;,
+    &quot;bitcoin&quot;
+  ],
+  &quot;legacy_positional_fields&quot;: 10
+}</pre></td><td><a href="#fn-validate_crypto_data_signature">validate_crypto_data_signature</a> <code>spec:compatibility.crypto_data_legacy_signature=&#x27;coin_code,start_date,end_date,all_time,order_ascending,fiat,coin_name,id_number,headers,rows&#x27;</code><br><a href="#fn-validate_crypto_data_signature">validate_crypto_data_signature</a> <code>spec:compatibility.new_kw_only_fields=[&#x27;aliases&#x27;]</code></td></tr></tbody></table></section><section><h2 id="case-snapshot_defaulted_fields">snapshot_defaulted_fields <span>PASS</span></h2><table><thead><tr><th>路径</th><th>结论</th><th>取值</th><th>函数与依据</th></tr></thead><tbody><tr><td>coin_alias</td><td>PASS</td><td><pre>{
+  &quot;symbol&quot;: &quot;BTC&quot;,
+  &quot;name&quot;: &quot;Bitcoin&quot;,
+  &quot;id&quot;: 1,
+  &quot;aliases&quot;: [
+    &quot;bitcoin&quot;,
+    &quot;btc&quot;,
+    &quot;xbt&quot;,
+    &quot;bit coin&quot;
+  ],
+  &quot;source&quot;: &quot;coins.aliases&quot;
+}</pre></td><td><a href="#fn-resolve_coin">resolve_coin</a> <code>spec:normalization.order=[&#x27;coin_alias&#x27;, &#x27;column_name&#x27;]</code><br><a href="#fn-resolve_coin">resolve_coin</a> <code>spec:normalization.order=[&#x27;coin_alias&#x27;, &#x27;column_name&#x27;]</code></td></tr><tr><td>fiat_id</td><td>PASS</td><td><pre>{
+  &quot;code&quot;: &quot;USD&quot;,
+  &quot;id&quot;: 2781,
+  &quot;source&quot;: &quot;fiat_ids.aliases&quot;
+}</pre></td><td><a href="#fn-resolve_fiat">resolve_fiat</a> <code>spec:fiat_ids.priority=[&#x27;exact_input_case_insensitive&#x27;, &#x27;declared_alias_case_insensitive&#x27;]</code><br><a href="#fn-resolve_fiat">resolve_fiat</a> <code>spec:fiat_ids.priority=[&#x27;exact_input_case_insensitive&#x27;, &#x27;declared_alias_case_insensitive&#x27;]</code></td></tr><tr><td>request_window</td><td>PASS</td><td><pre>{
+  &quot;start&quot;: &quot;24-09-2026&quot;,
+  &quot;end&quot;: &quot;24-09-2026&quot;,
+  &quot;span_days&quot;: 0,
+  &quot;time_start&quot;: 1790121600,
+  &quot;time_end&quot;: 1790208000,
+  &quot;pages&quot;: 1
+}</pre></td><td><a href="#fn-validate_request_window">validate_request_window</a> <code>spec:windows.upstream_time_start_boundary=&#x27;exclusive&#x27;; spec:windows.upstream_time_end_boundary=&#x27;inclusive&#x27;</code><br><a href="#fn-validate_request_window">validate_request_window</a> <code>spec:windows.same_day_span_is_valid=True</code></td></tr><tr><td>timestamp_unit</td><td>PASS</td><td><pre>{
+  &quot;seconds&quot;: 1790121600
+}</pre></td><td><a href="#fn-validate_unix_timestamp">validate_unix_timestamp</a> <code>spec:time.timestamp_unit=&#x27;second&#x27;</code><br><a href="#fn-validate_unix_timestamp">validate_unix_timestamp</a> <code>spec:time.timestamp_kind=&#x27;unix_integer&#x27;</code></td></tr><tr><td>snapshot_path</td><td>PASS</td><td><pre>{
+  &quot;source&quot;: &quot;builtin_snapshot&quot;,
+  &quot;headers&quot;: [
+    &quot;Date&quot;,
+    &quot;Open&quot;,
+    &quot;High&quot;,
+    &quot;Low&quot;,
+    &quot;Close&quot;,
+    &quot;Volume&quot;,
+    &quot;Market Cap&quot;,
+    &quot;Time Open&quot;,
+    &quot;Time High&quot;,
+    &quot;Time Low&quot;,
+    &quot;Time Close&quot;
+  ],
+  &quot;rows&quot;: [
+    [
+      &quot;24-09-2026&quot;,
+      50500.0,
+      51500.0,
+      50000.0,
+      51000.0,
+      1100000.0,
+      910000000000.0,
+      &quot;2026-09-24T00:00:00.000Z&quot;,
+      &quot;2026-09-24T12:00:00.000Z&quot;,
+      null,
+      &quot;2026-09-24T23:59:59.999Z&quot;
+    ]
+  ],
+  &quot;markers&quot;: [
+    &quot;snapshot_defaulted_fields&quot;
+  ],
+  &quot;field_sources&quot;: {
+    &quot;date&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;open&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;high&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;low&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;close&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;volume&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;market_cap&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_open&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_high&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_low&quot;: [
+      &quot;spec_snapshot_default&quot;
+    ],
+    &quot;time_close&quot;: [
+      &quot;spec_column_path&quot;
+    ]
+  }
+}</pre></td><td><a href="#fn-parse_quote_table">parse_quote_table</a> <code>spec:windows.row_order=&#x27;descending_by_quote_date&#x27;</code><br><a href="#fn-parse_quote_table">parse_quote_table</a> <code>spec:source_policy.snapshot_marker=&#x27;builtin_snapshot&#x27;</code></td></tr><tr><td>snapshot_vs_live</td><td>PASS</td><td><pre>{
+  &quot;source&quot;: &quot;builtin_snapshot&quot;,
+  &quot;markers&quot;: [
+    &quot;builtin_snapshot&quot;,
+    &quot;snapshot_defaulted_fields&quot;
+  ],
+  &quot;conflicts&quot;: [],
+  &quot;default_records&quot;: [
+    {
+      &quot;row&quot;: 0,
+      &quot;date&quot;: &quot;24-09-2026&quot;,
+      &quot;field&quot;: &quot;Time Low&quot;,
+      &quot;value&quot;: null,
+      &quot;source&quot;: &quot;spec_snapshot_default&quot;
+    }
+  ],
+  &quot;row_count&quot;: 1,
+  &quot;rows&quot;: [
+    [
+      &quot;24-09-2026&quot;,
+      50500.0,
+      51500.0,
+      50000.0,
+      51000.0,
+      1100000.0,
+      910000000000.0,
+      &quot;2026-09-24T00:00:00.000Z&quot;,
+      &quot;2026-09-24T12:00:00.000Z&quot;,
+      null,
+      &quot;2026-09-24T23:59:59.999Z&quot;
+    ]
+  ]
+}</pre></td><td><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.complete_coverage_required=True</code><br><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.snapshot_preferred_max_request_span_days=1</code><br><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.snapshot_fresh_max_age_days=7</code><br><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.conflict_winner=&#x27;snapshot&#x27;</code></td></tr><tr><td>column_name</td><td>PASS</td><td><pre>{
+  &quot;headers&quot;: [
+    &quot;Date&quot;,
+    &quot;Open&quot;,
+    &quot;High&quot;,
+    &quot;Low&quot;,
+    &quot;Close&quot;,
+    &quot;Volume&quot;,
+    &quot;Market Cap&quot;,
+    &quot;Time Open&quot;,
+    &quot;Time High&quot;,
+    &quot;Time Low&quot;,
+    &quot;Time Close&quot;
+  ],
+  &quot;sources&quot;: [
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;
+  ]
+}</pre></td><td><a href="#fn-normalize_column_headers">normalize_column_headers</a> <code>spec:normalization.order=[&#x27;coin_alias&#x27;, &#x27;column_name&#x27;]</code><br><a href="#fn-normalize_column_headers">normalize_column_headers</a> <code>spec:normalization.fallback_order=[&#x27;mapped_path&#x27;, &#x27;positional_header&#x27;, &#x27;reject&#x27;]</code></td></tr><tr><td>crypto_data_compatibility</td><td>PASS</td><td><pre>{
+  &quot;aliases&quot;: [
+    &quot;btc&quot;,
+    &quot;bitcoin&quot;
+  ],
+  &quot;legacy_positional_fields&quot;: 10
+}</pre></td><td><a href="#fn-validate_crypto_data_signature">validate_crypto_data_signature</a> <code>spec:compatibility.crypto_data_legacy_signature=&#x27;coin_code,start_date,end_date,all_time,order_ascending,fiat,coin_name,id_number,headers,rows&#x27;</code><br><a href="#fn-validate_crypto_data_signature">validate_crypto_data_signature</a> <code>spec:compatibility.new_kw_only_fields=[&#x27;aliases&#x27;]</code></td></tr></tbody></table></section><section><h2 id="case-live_for_wide_window">live_for_wide_window <span>PASS</span></h2><table><thead><tr><th>路径</th><th>结论</th><th>取值</th><th>函数与依据</th></tr></thead><tbody><tr><td>coin_alias</td><td>PASS</td><td><pre>{
+  &quot;symbol&quot;: &quot;ETH&quot;,
+  &quot;name&quot;: &quot;Ethereum&quot;,
+  &quot;id&quot;: 1027,
+  &quot;aliases&quot;: [
+    &quot;ethereum&quot;,
+    &quot;eth&quot;,
+    &quot;ether&quot;
+  ],
+  &quot;source&quot;: &quot;coins.aliases&quot;
+}</pre></td><td><a href="#fn-resolve_coin">resolve_coin</a> <code>spec:normalization.order=[&#x27;coin_alias&#x27;, &#x27;column_name&#x27;]</code><br><a href="#fn-resolve_coin">resolve_coin</a> <code>spec:normalization.order=[&#x27;coin_alias&#x27;, &#x27;column_name&#x27;]</code></td></tr><tr><td>fiat_id</td><td>PASS</td><td><pre>{
+  &quot;code&quot;: &quot;EUR&quot;,
+  &quot;id&quot;: 2790,
+  &quot;source&quot;: &quot;fiat_ids.exact&quot;
+}</pre></td><td><a href="#fn-resolve_fiat">resolve_fiat</a> <code>spec:fiat_ids.priority=[&#x27;exact_input_case_insensitive&#x27;, &#x27;declared_alias_case_insensitive&#x27;]</code><br><a href="#fn-resolve_fiat">resolve_fiat</a> <code>spec:fiat_ids.priority=[&#x27;exact_input_case_insensitive&#x27;, &#x27;declared_alias_case_insensitive&#x27;]</code></td></tr><tr><td>request_window</td><td>PASS</td><td><pre>{
+  &quot;start&quot;: &quot;20-09-2026&quot;,
+  &quot;end&quot;: &quot;24-09-2026&quot;,
+  &quot;span_days&quot;: 4,
+  &quot;time_start&quot;: 1789776000,
+  &quot;time_end&quot;: 1790208000,
+  &quot;pages&quot;: 1
+}</pre></td><td><a href="#fn-validate_request_window">validate_request_window</a> <code>spec:windows.upstream_time_start_boundary=&#x27;exclusive&#x27;; spec:windows.upstream_time_end_boundary=&#x27;inclusive&#x27;</code><br><a href="#fn-validate_request_window">validate_request_window</a> <code>spec:windows.same_day_span_is_valid=True</code></td></tr><tr><td>timestamp_unit</td><td>PASS</td><td><pre>{
+  &quot;seconds&quot;: 1789776000
+}</pre></td><td><a href="#fn-validate_unix_timestamp">validate_unix_timestamp</a> <code>spec:time.timestamp_unit=&#x27;second&#x27;</code><br><a href="#fn-validate_unix_timestamp">validate_unix_timestamp</a> <code>spec:time.timestamp_kind=&#x27;unix_integer&#x27;</code></td></tr><tr><td>snapshot_path</td><td>PASS</td><td><pre>{
+  &quot;source&quot;: &quot;builtin_snapshot&quot;,
+  &quot;headers&quot;: [
+    &quot;Date&quot;,
+    &quot;Open&quot;,
+    &quot;High&quot;,
+    &quot;Low&quot;,
+    &quot;Close&quot;,
+    &quot;Volume&quot;,
+    &quot;Market Cap&quot;,
+    &quot;Time Open&quot;,
+    &quot;Time High&quot;,
+    &quot;Time Low&quot;,
+    &quot;Time Close&quot;
+  ],
+  &quot;rows&quot;: [
+    [
+      &quot;23-09-2026&quot;,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      &quot;2026-09-23T00:00:00.000Z&quot;,
+      &quot;2026-09-23T12:00:00.000Z&quot;,
+      &quot;2026-09-23T06:00:00.000Z&quot;,
+      &quot;2026-09-23T23:59:59.999Z&quot;
+    ]
+  ],
+  &quot;markers&quot;: [],
+  &quot;field_sources&quot;: {
+    &quot;date&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;open&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;high&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;low&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;close&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;volume&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;market_cap&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_open&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_high&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_low&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_close&quot;: [
+      &quot;spec_column_path&quot;
+    ]
+  }
+}</pre></td><td><a href="#fn-parse_quote_table">parse_quote_table</a> <code>spec:windows.row_order=&#x27;descending_by_quote_date&#x27;</code><br><a href="#fn-parse_quote_table">parse_quote_table</a> <code>spec:source_policy.snapshot_marker=&#x27;builtin_snapshot&#x27;</code></td></tr><tr><td>live_path</td><td>PASS</td><td><pre>{
+  &quot;source&quot;: &quot;live_response&quot;,
+  &quot;headers&quot;: [
+    &quot;Date&quot;,
+    &quot;Open&quot;,
+    &quot;High&quot;,
+    &quot;Low&quot;,
+    &quot;Close&quot;,
+    &quot;Volume&quot;,
+    &quot;Market Cap&quot;,
+    &quot;Time Open&quot;,
+    &quot;Time High&quot;,
+    &quot;Time Low&quot;,
+    &quot;Time Close&quot;
+  ],
+  &quot;rows&quot;: [
+    [
+      &quot;24-09-2026&quot;,
+      3.0,
+      3.0,
+      3.0,
+      3.0,
+      3.0,
+      3.0,
+      &quot;2026-09-24T00:00:00.000Z&quot;,
+      &quot;2026-09-24T12:00:00.000Z&quot;,
+      &quot;2026-09-24T06:00:00.000Z&quot;,
+      &quot;2026-09-24T23:59:59.999Z&quot;
+    ],
+    [
+      &quot;20-09-2026&quot;,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      &quot;2026-09-20T00:00:00.000Z&quot;,
+      &quot;2026-09-20T12:00:00.000Z&quot;,
+      &quot;2026-09-20T06:00:00.000Z&quot;,
+      &quot;2026-09-20T23:59:59.999Z&quot;
+    ]
+  ],
+  &quot;markers&quot;: [],
+  &quot;field_sources&quot;: {
+    &quot;date&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;open&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;high&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;low&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;close&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;volume&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;market_cap&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_open&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_high&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_low&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_close&quot;: [
+      &quot;spec_column_path&quot;,
+      &quot;spec_column_path&quot;
+    ]
+  }
+}</pre></td><td><a href="#fn-parse_quote_table">parse_quote_table</a> <code>spec:windows.row_order=&#x27;descending_by_quote_date&#x27;</code><br><a href="#fn-parse_quote_table">parse_quote_table</a> <code>spec:source_policy.live_marker=&#x27;live_response&#x27;</code></td></tr><tr><td>snapshot_vs_live</td><td>PASS</td><td><pre>{
+  &quot;source&quot;: &quot;live_response&quot;,
+  &quot;markers&quot;: [
+    &quot;live_response&quot;
+  ],
+  &quot;conflicts&quot;: [],
+  &quot;default_records&quot;: [],
+  &quot;row_count&quot;: 2,
+  &quot;rows&quot;: [
+    [
+      &quot;24-09-2026&quot;,
+      3.0,
+      3.0,
+      3.0,
+      3.0,
+      3.0,
+      3.0,
+      &quot;2026-09-24T00:00:00.000Z&quot;,
+      &quot;2026-09-24T12:00:00.000Z&quot;,
+      &quot;2026-09-24T06:00:00.000Z&quot;,
+      &quot;2026-09-24T23:59:59.999Z&quot;
+    ],
+    [
+      &quot;20-09-2026&quot;,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      2.0,
+      &quot;2026-09-20T00:00:00.000Z&quot;,
+      &quot;2026-09-20T12:00:00.000Z&quot;,
+      &quot;2026-09-20T06:00:00.000Z&quot;,
+      &quot;2026-09-20T23:59:59.999Z&quot;
+    ]
+  ]
+}</pre></td><td><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.complete_coverage_required=True</code><br><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.snapshot_preferred_max_request_span_days=1</code><br><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.snapshot_fresh_max_age_days=7</code><br><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.conflict_winner=&#x27;snapshot&#x27;</code><br><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.ineligible_reason=&#x27;coverage&#x27;; missing=(&#x27;20-09-2026&#x27;, &#x27;21-09-2026&#x27;, &#x27;22-09-2026&#x27;, &#x27;24-09-2026&#x27;)</code></td></tr><tr><td>column_name</td><td>PASS</td><td><pre>{
+  &quot;headers&quot;: [
+    &quot;Date&quot;,
+    &quot;Open&quot;,
+    &quot;High&quot;,
+    &quot;Low&quot;,
+    &quot;Close&quot;,
+    &quot;Volume&quot;,
+    &quot;Market Cap&quot;,
+    &quot;Time Open&quot;,
+    &quot;Time High&quot;,
+    &quot;Time Low&quot;,
+    &quot;Time Close&quot;
+  ],
+  &quot;sources&quot;: [
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;
+  ]
+}</pre></td><td><a href="#fn-normalize_column_headers">normalize_column_headers</a> <code>spec:normalization.order=[&#x27;coin_alias&#x27;, &#x27;column_name&#x27;]</code><br><a href="#fn-normalize_column_headers">normalize_column_headers</a> <code>spec:normalization.fallback_order=[&#x27;mapped_path&#x27;, &#x27;positional_header&#x27;, &#x27;reject&#x27;]</code></td></tr><tr><td>crypto_data_compatibility</td><td>PASS</td><td><pre>{
+  &quot;aliases&quot;: [
+    &quot;btc&quot;,
+    &quot;bitcoin&quot;
+  ],
+  &quot;legacy_positional_fields&quot;: 10
+}</pre></td><td><a href="#fn-validate_crypto_data_signature">validate_crypto_data_signature</a> <code>spec:compatibility.crypto_data_legacy_signature=&#x27;coin_code,start_date,end_date,all_time,order_ascending,fiat,coin_name,id_number,headers,rows&#x27;</code><br><a href="#fn-validate_crypto_data_signature">validate_crypto_data_signature</a> <code>spec:compatibility.new_kw_only_fields=[&#x27;aliases&#x27;]</code></td></tr></tbody></table></section><section><h2 id="case-positional_header_fallback">positional_header_fallback <span>PASS</span></h2><table><thead><tr><th>路径</th><th>结论</th><th>取值</th><th>函数与依据</th></tr></thead><tbody><tr><td>coin_alias</td><td>PASS</td><td><pre>{
+  &quot;symbol&quot;: &quot;5426&quot;,
+  &quot;name&quot;: null,
+  &quot;id&quot;: 5426,
+  &quot;aliases&quot;: [],
+  &quot;source&quot;: &quot;input.id_number&quot;
+}</pre></td><td><a href="#fn-resolve_coin">resolve_coin</a> <code>spec:request.id_number=bypasses coins.aliases</code><br><a href="#fn-resolve_coin">resolve_coin</a> <code>spec:normalization.order=[&#x27;coin_alias&#x27;, &#x27;column_name&#x27;]</code></td></tr><tr><td>fiat_id</td><td>PASS</td><td><pre>{
+  &quot;code&quot;: &quot;USD&quot;,
+  &quot;id&quot;: 2781,
+  &quot;source&quot;: &quot;fiat_ids.exact&quot;
+}</pre></td><td><a href="#fn-resolve_fiat">resolve_fiat</a> <code>spec:fiat_ids.priority=[&#x27;exact_input_case_insensitive&#x27;, &#x27;declared_alias_case_insensitive&#x27;]</code><br><a href="#fn-resolve_fiat">resolve_fiat</a> <code>spec:fiat_ids.priority=[&#x27;exact_input_case_insensitive&#x27;, &#x27;declared_alias_case_insensitive&#x27;]</code></td></tr><tr><td>request_window</td><td>PASS</td><td><pre>{
+  &quot;start&quot;: &quot;24-09-2026&quot;,
+  &quot;end&quot;: &quot;24-09-2026&quot;,
+  &quot;span_days&quot;: 0,
+  &quot;time_start&quot;: 1790121600,
+  &quot;time_end&quot;: 1790208000,
+  &quot;pages&quot;: 1
+}</pre></td><td><a href="#fn-validate_request_window">validate_request_window</a> <code>spec:windows.upstream_time_start_boundary=&#x27;exclusive&#x27;; spec:windows.upstream_time_end_boundary=&#x27;inclusive&#x27;</code><br><a href="#fn-validate_request_window">validate_request_window</a> <code>spec:windows.same_day_span_is_valid=True</code></td></tr><tr><td>timestamp_unit</td><td>PASS</td><td><pre>{
+  &quot;seconds&quot;: 1790121600
+}</pre></td><td><a href="#fn-validate_unix_timestamp">validate_unix_timestamp</a> <code>spec:time.timestamp_unit=&#x27;second&#x27;</code><br><a href="#fn-validate_unix_timestamp">validate_unix_timestamp</a> <code>spec:time.timestamp_kind=&#x27;unix_integer&#x27;</code></td></tr><tr><td>snapshot_path</td><td>PASS</td><td><pre>{
+  &quot;source&quot;: &quot;builtin_snapshot&quot;,
+  &quot;headers&quot;: [
+    &quot;Date&quot;,
+    &quot;Open&quot;,
+    &quot;High&quot;,
+    &quot;Low&quot;,
+    &quot;Close&quot;,
+    &quot;Volume&quot;,
+    &quot;Market Cap&quot;,
+    &quot;Time Open&quot;,
+    &quot;Time High&quot;,
+    &quot;Time Low&quot;,
+    &quot;Time Close&quot;
+  ],
+  &quot;rows&quot;: [
+    [
+      &quot;24-09-2026&quot;,
+      100.0,
+      101.0,
+      99.0,
+      100.5,
+      42.0,
+      9000.0,
+      &quot;2026-09-24T00:00:00.000Z&quot;,
+      &quot;2026-09-24T12:00:00.000Z&quot;,
+      &quot;2026-09-24T06:00:00.000Z&quot;,
+      &quot;2026-09-24T23:59:59.999Z&quot;
+    ]
+  ],
+  &quot;markers&quot;: [],
+  &quot;field_sources&quot;: {
+    &quot;date&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;open&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;high&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;low&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;close&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;volume&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;market_cap&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_open&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_high&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_low&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_close&quot;: [
+      &quot;spec_column_path&quot;
+    ]
+  }
+}</pre></td><td><a href="#fn-parse_quote_table">parse_quote_table</a> <code>spec:windows.row_order=&#x27;descending_by_quote_date&#x27;</code><br><a href="#fn-parse_quote_table">parse_quote_table</a> <code>spec:source_policy.snapshot_marker=&#x27;builtin_snapshot&#x27;</code></td></tr><tr><td>snapshot_vs_live</td><td>PASS</td><td><pre>{
+  &quot;source&quot;: &quot;builtin_snapshot&quot;,
+  &quot;markers&quot;: [
+    &quot;builtin_snapshot&quot;
+  ],
+  &quot;conflicts&quot;: [],
+  &quot;default_records&quot;: [],
+  &quot;row_count&quot;: 1,
+  &quot;rows&quot;: [
+    [
+      &quot;24-09-2026&quot;,
+      100.0,
+      101.0,
+      99.0,
+      100.5,
+      42.0,
+      9000.0,
+      &quot;2026-09-24T00:00:00.000Z&quot;,
+      &quot;2026-09-24T12:00:00.000Z&quot;,
+      &quot;2026-09-24T06:00:00.000Z&quot;,
+      &quot;2026-09-24T23:59:59.999Z&quot;
+    ]
+  ]
+}</pre></td><td><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.complete_coverage_required=True</code><br><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.snapshot_preferred_max_request_span_days=1</code><br><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.snapshot_fresh_max_age_days=7</code><br><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.conflict_winner=&#x27;snapshot&#x27;</code></td></tr><tr><td>column_name</td><td>PASS</td><td><pre>{
+  &quot;headers&quot;: [
+    &quot;Date&quot;,
+    &quot;Open&quot;,
+    &quot;High&quot;,
+    &quot;Low&quot;,
+    &quot;Close&quot;,
+    &quot;Volume&quot;,
+    &quot;Market Cap&quot;,
+    &quot;Time Open&quot;,
+    &quot;Time High&quot;,
+    &quot;Time Low&quot;,
+    &quot;Time Close&quot;
+  ],
+  &quot;sources&quot;: [
+    &quot;spec_column_positional_fallback&quot;,
+    &quot;spec_column_positional_fallback&quot;,
+    &quot;spec_column_positional_fallback&quot;,
+    &quot;spec_column_positional_fallback&quot;,
+    &quot;spec_column_positional_fallback&quot;,
+    &quot;spec_column_positional_fallback&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_positional_fallback&quot;,
+    &quot;spec_column_positional_fallback&quot;,
+    &quot;spec_column_positional_fallback&quot;,
+    &quot;spec_column_positional_fallback&quot;
+  ]
+}</pre></td><td><a href="#fn-normalize_column_headers">normalize_column_headers</a> <code>spec:normalization.order=[&#x27;coin_alias&#x27;, &#x27;column_name&#x27;]</code><br><a href="#fn-normalize_column_headers">normalize_column_headers</a> <code>spec:normalization.fallback_order=[&#x27;mapped_path&#x27;, &#x27;positional_header&#x27;, &#x27;reject&#x27;]</code></td></tr><tr><td>crypto_data_compatibility</td><td>PASS</td><td><pre>{
+  &quot;aliases&quot;: [
+    &quot;btc&quot;,
+    &quot;bitcoin&quot;
+  ],
+  &quot;legacy_positional_fields&quot;: 10
+}</pre></td><td><a href="#fn-validate_crypto_data_signature">validate_crypto_data_signature</a> <code>spec:compatibility.crypto_data_legacy_signature=&#x27;coin_code,start_date,end_date,all_time,order_ascending,fiat,coin_name,id_number,headers,rows&#x27;</code><br><a href="#fn-validate_crypto_data_signature">validate_crypto_data_signature</a> <code>spec:compatibility.new_kw_only_fields=[&#x27;aliases&#x27;]</code></td></tr></tbody></table></section><section><h2 id="case-negative_window_rejected">negative_window_rejected <span>PASS</span></h2><table><thead><tr><th>路径</th><th>结论</th><th>取值</th><th>函数与依据</th></tr></thead><tbody><tr><td>coin_alias</td><td>PASS</td><td><pre>{
+  &quot;symbol&quot;: &quot;BTC&quot;,
+  &quot;name&quot;: &quot;Bitcoin&quot;,
+  &quot;id&quot;: 1,
+  &quot;aliases&quot;: [
+    &quot;bitcoin&quot;,
+    &quot;btc&quot;,
+    &quot;xbt&quot;,
+    &quot;bit coin&quot;
+  ],
+  &quot;source&quot;: &quot;coins.aliases&quot;
+}</pre></td><td><a href="#fn-resolve_coin">resolve_coin</a> <code>spec:normalization.order=[&#x27;coin_alias&#x27;, &#x27;column_name&#x27;]</code><br><a href="#fn-resolve_coin">resolve_coin</a> <code>spec:normalization.order=[&#x27;coin_alias&#x27;, &#x27;column_name&#x27;]</code></td></tr><tr><td>fiat_id</td><td>PASS</td><td><pre>{
+  &quot;code&quot;: &quot;USD&quot;,
+  &quot;id&quot;: 2781,
+  &quot;source&quot;: &quot;fiat_ids.exact&quot;
+}</pre></td><td><a href="#fn-resolve_fiat">resolve_fiat</a> <code>spec:fiat_ids.priority=[&#x27;exact_input_case_insensitive&#x27;, &#x27;declared_alias_case_insensitive&#x27;]</code><br><a href="#fn-resolve_fiat">resolve_fiat</a> <code>spec:fiat_ids.priority=[&#x27;exact_input_case_insensitive&#x27;, &#x27;declared_alias_case_insensitive&#x27;]</code></td></tr><tr><td>request_window</td><td>FAIL</td><td><pre>{
+  &quot;error&quot;: &quot;InvalidSpecWindow&quot;
+}</pre></td><td><a href="#fn-validate_request_window">validate_request_window</a> <code>end_date must be on or after start_date; spec:windows.negative_span_is_valid=False</code></td></tr></tbody></table></section><section><h2 id="case-stale_snapshot_live_failure_fallback">stale_snapshot_live_failure_fallback <span>PASS</span></h2><table><thead><tr><th>路径</th><th>结论</th><th>取值</th><th>函数与依据</th></tr></thead><tbody><tr><td>coin_alias</td><td>PASS</td><td><pre>{
+  &quot;symbol&quot;: &quot;BTC&quot;,
+  &quot;name&quot;: null,
+  &quot;id&quot;: 1,
+  &quot;aliases&quot;: [],
+  &quot;source&quot;: &quot;input.id_number&quot;
+}</pre></td><td><a href="#fn-resolve_coin">resolve_coin</a> <code>spec:request.id_number=bypasses coins.aliases</code><br><a href="#fn-resolve_coin">resolve_coin</a> <code>spec:normalization.order=[&#x27;coin_alias&#x27;, &#x27;column_name&#x27;]</code></td></tr><tr><td>fiat_id</td><td>PASS</td><td><pre>{
+  &quot;code&quot;: &quot;USD&quot;,
+  &quot;id&quot;: 2781,
+  &quot;source&quot;: &quot;fiat_ids.exact&quot;
+}</pre></td><td><a href="#fn-resolve_fiat">resolve_fiat</a> <code>spec:fiat_ids.priority=[&#x27;exact_input_case_insensitive&#x27;, &#x27;declared_alias_case_insensitive&#x27;]</code><br><a href="#fn-resolve_fiat">resolve_fiat</a> <code>spec:fiat_ids.priority=[&#x27;exact_input_case_insensitive&#x27;, &#x27;declared_alias_case_insensitive&#x27;]</code></td></tr><tr><td>request_window</td><td>PASS</td><td><pre>{
+  &quot;start&quot;: &quot;24-09-2026&quot;,
+  &quot;end&quot;: &quot;24-09-2026&quot;,
+  &quot;span_days&quot;: 0,
+  &quot;time_start&quot;: 1790121600,
+  &quot;time_end&quot;: 1790208000,
+  &quot;pages&quot;: 1
+}</pre></td><td><a href="#fn-validate_request_window">validate_request_window</a> <code>spec:windows.upstream_time_start_boundary=&#x27;exclusive&#x27;; spec:windows.upstream_time_end_boundary=&#x27;inclusive&#x27;</code><br><a href="#fn-validate_request_window">validate_request_window</a> <code>spec:windows.same_day_span_is_valid=True</code></td></tr><tr><td>timestamp_unit</td><td>PASS</td><td><pre>{
+  &quot;seconds&quot;: 1790121600
+}</pre></td><td><a href="#fn-validate_unix_timestamp">validate_unix_timestamp</a> <code>spec:time.timestamp_unit=&#x27;second&#x27;</code><br><a href="#fn-validate_unix_timestamp">validate_unix_timestamp</a> <code>spec:time.timestamp_kind=&#x27;unix_integer&#x27;</code></td></tr><tr><td>snapshot_path</td><td>PASS</td><td><pre>{
+  &quot;source&quot;: &quot;builtin_snapshot&quot;,
+  &quot;headers&quot;: [
+    &quot;Date&quot;,
+    &quot;Open&quot;,
+    &quot;High&quot;,
+    &quot;Low&quot;,
+    &quot;Close&quot;,
+    &quot;Volume&quot;,
+    &quot;Market Cap&quot;,
+    &quot;Time Open&quot;,
+    &quot;Time High&quot;,
+    &quot;Time Low&quot;,
+    &quot;Time Close&quot;
+  ],
+  &quot;rows&quot;: [
+    [
+      &quot;24-09-2026&quot;,
+      50500.0,
+      51500.0,
+      50000.0,
+      51000.0,
+      1100000.0,
+      910000000000.0,
+      &quot;2026-09-24T00:00:00.000Z&quot;,
+      &quot;2026-09-24T12:00:00.000Z&quot;,
+      &quot;2026-09-24T06:00:00.000Z&quot;,
+      &quot;2026-09-24T23:59:59.999Z&quot;
+    ]
+  ],
+  &quot;markers&quot;: [],
+  &quot;field_sources&quot;: {
+    &quot;date&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;open&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;high&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;low&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;close&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;volume&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;market_cap&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_open&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_high&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_low&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_close&quot;: [
+      &quot;spec_column_path&quot;
+    ]
+  }
+}</pre></td><td><a href="#fn-parse_quote_table">parse_quote_table</a> <code>spec:windows.row_order=&#x27;descending_by_quote_date&#x27;</code><br><a href="#fn-parse_quote_table">parse_quote_table</a> <code>spec:source_policy.snapshot_marker=&#x27;builtin_snapshot&#x27;</code></td></tr><tr><td>snapshot_vs_live</td><td>PASS</td><td><pre>{
+  &quot;source&quot;: &quot;builtin_snapshot&quot;,
+  &quot;markers&quot;: [
+    &quot;builtin_snapshot&quot;,
+    &quot;snapshot_live_failure_fallback&quot;,
+    &quot;snapshot_stale_fallback&quot;
+  ],
+  &quot;conflicts&quot;: [],
+  &quot;default_records&quot;: [],
+  &quot;row_count&quot;: 1,
+  &quot;rows&quot;: [
+    [
+      &quot;24-09-2026&quot;,
+      50500.0,
+      51500.0,
+      50000.0,
+      51000.0,
+      1100000.0,
+      910000000000.0,
+      &quot;2026-09-24T00:00:00.000Z&quot;,
+      &quot;2026-09-24T12:00:00.000Z&quot;,
+      &quot;2026-09-24T06:00:00.000Z&quot;,
+      &quot;2026-09-24T23:59:59.999Z&quot;
+    ]
+  ]
+}</pre></td><td><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.complete_coverage_required=True</code><br><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.snapshot_preferred_max_request_span_days=1</code><br><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.snapshot_fresh_max_age_days=7</code><br><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.conflict_winner=&#x27;snapshot&#x27;</code></td></tr><tr><td>column_name</td><td>PASS</td><td><pre>{
+  &quot;headers&quot;: [
+    &quot;Date&quot;,
+    &quot;Open&quot;,
+    &quot;High&quot;,
+    &quot;Low&quot;,
+    &quot;Close&quot;,
+    &quot;Volume&quot;,
+    &quot;Market Cap&quot;,
+    &quot;Time Open&quot;,
+    &quot;Time High&quot;,
+    &quot;Time Low&quot;,
+    &quot;Time Close&quot;
+  ],
+  &quot;sources&quot;: [
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;
+  ]
+}</pre></td><td><a href="#fn-normalize_column_headers">normalize_column_headers</a> <code>spec:normalization.order=[&#x27;coin_alias&#x27;, &#x27;column_name&#x27;]</code><br><a href="#fn-normalize_column_headers">normalize_column_headers</a> <code>spec:normalization.fallback_order=[&#x27;mapped_path&#x27;, &#x27;positional_header&#x27;, &#x27;reject&#x27;]</code></td></tr><tr><td>crypto_data_compatibility</td><td>PASS</td><td><pre>{
+  &quot;aliases&quot;: [
+    &quot;btc&quot;,
+    &quot;bitcoin&quot;
+  ],
+  &quot;legacy_positional_fields&quot;: 10
+}</pre></td><td><a href="#fn-validate_crypto_data_signature">validate_crypto_data_signature</a> <code>spec:compatibility.crypto_data_legacy_signature=&#x27;coin_code,start_date,end_date,all_time,order_ascending,fiat,coin_name,id_number,headers,rows&#x27;</code><br><a href="#fn-validate_crypto_data_signature">validate_crypto_data_signature</a> <code>spec:compatibility.new_kw_only_fields=[&#x27;aliases&#x27;]</code></td></tr></tbody></table></section><section><h2 id="case-future_snapshot_never_fallback">future_snapshot_never_fallback <span>PASS</span></h2><table><thead><tr><th>路径</th><th>结论</th><th>取值</th><th>函数与依据</th></tr></thead><tbody><tr><td>coin_alias</td><td>PASS</td><td><pre>{
+  &quot;symbol&quot;: &quot;BTC&quot;,
+  &quot;name&quot;: null,
+  &quot;id&quot;: 1,
+  &quot;aliases&quot;: [],
+  &quot;source&quot;: &quot;input.id_number&quot;
+}</pre></td><td><a href="#fn-resolve_coin">resolve_coin</a> <code>spec:request.id_number=bypasses coins.aliases</code><br><a href="#fn-resolve_coin">resolve_coin</a> <code>spec:normalization.order=[&#x27;coin_alias&#x27;, &#x27;column_name&#x27;]</code></td></tr><tr><td>fiat_id</td><td>PASS</td><td><pre>{
+  &quot;code&quot;: &quot;USD&quot;,
+  &quot;id&quot;: 2781,
+  &quot;source&quot;: &quot;fiat_ids.exact&quot;
+}</pre></td><td><a href="#fn-resolve_fiat">resolve_fiat</a> <code>spec:fiat_ids.priority=[&#x27;exact_input_case_insensitive&#x27;, &#x27;declared_alias_case_insensitive&#x27;]</code><br><a href="#fn-resolve_fiat">resolve_fiat</a> <code>spec:fiat_ids.priority=[&#x27;exact_input_case_insensitive&#x27;, &#x27;declared_alias_case_insensitive&#x27;]</code></td></tr><tr><td>request_window</td><td>PASS</td><td><pre>{
+  &quot;start&quot;: &quot;24-09-2026&quot;,
+  &quot;end&quot;: &quot;24-09-2026&quot;,
+  &quot;span_days&quot;: 0,
+  &quot;time_start&quot;: 1790121600,
+  &quot;time_end&quot;: 1790208000,
+  &quot;pages&quot;: 1
+}</pre></td><td><a href="#fn-validate_request_window">validate_request_window</a> <code>spec:windows.upstream_time_start_boundary=&#x27;exclusive&#x27;; spec:windows.upstream_time_end_boundary=&#x27;inclusive&#x27;</code><br><a href="#fn-validate_request_window">validate_request_window</a> <code>spec:windows.same_day_span_is_valid=True</code></td></tr><tr><td>timestamp_unit</td><td>PASS</td><td><pre>{
+  &quot;seconds&quot;: 1790121600
+}</pre></td><td><a href="#fn-validate_unix_timestamp">validate_unix_timestamp</a> <code>spec:time.timestamp_unit=&#x27;second&#x27;</code><br><a href="#fn-validate_unix_timestamp">validate_unix_timestamp</a> <code>spec:time.timestamp_kind=&#x27;unix_integer&#x27;</code></td></tr><tr><td>snapshot_path</td><td>PASS</td><td><pre>{
+  &quot;source&quot;: &quot;builtin_snapshot&quot;,
+  &quot;headers&quot;: [
+    &quot;Date&quot;,
+    &quot;Open&quot;,
+    &quot;High&quot;,
+    &quot;Low&quot;,
+    &quot;Close&quot;,
+    &quot;Volume&quot;,
+    &quot;Market Cap&quot;,
+    &quot;Time Open&quot;,
+    &quot;Time High&quot;,
+    &quot;Time Low&quot;,
+    &quot;Time Close&quot;
+  ],
+  &quot;rows&quot;: [
+    [
+      &quot;24-09-2026&quot;,
+      50500.0,
+      51500.0,
+      50000.0,
+      51000.0,
+      1100000.0,
+      910000000000.0,
+      &quot;2026-09-24T00:00:00.000Z&quot;,
+      &quot;2026-09-24T12:00:00.000Z&quot;,
+      &quot;2026-09-24T06:00:00.000Z&quot;,
+      &quot;2026-09-24T23:59:59.999Z&quot;
+    ]
+  ],
+  &quot;markers&quot;: [],
+  &quot;field_sources&quot;: {
+    &quot;date&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;open&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;high&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;low&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;close&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;volume&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;market_cap&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_open&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_high&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_low&quot;: [
+      &quot;spec_column_path&quot;
+    ],
+    &quot;time_close&quot;: [
+      &quot;spec_column_path&quot;
+    ]
+  }
+}</pre></td><td><a href="#fn-parse_quote_table">parse_quote_table</a> <code>spec:windows.row_order=&#x27;descending_by_quote_date&#x27;</code><br><a href="#fn-parse_quote_table">parse_quote_table</a> <code>spec:source_policy.snapshot_marker=&#x27;builtin_snapshot&#x27;</code></td></tr><tr><td>snapshot_vs_live</td><td>FAIL</td><td><pre>{
+  &quot;error&quot;: &quot;InvalidSpecResponse&quot;,
+  &quot;message&quot;: &quot;no live response or builtin snapshot is available&quot;
+}</pre></td><td><a href="#fn-reconcile_sources">reconcile_sources</a> <code>spec:source_policy.complete_coverage_required=True</code></td></tr><tr><td>column_name</td><td>PASS</td><td><pre>{
+  &quot;headers&quot;: [
+    &quot;Date&quot;,
+    &quot;Open&quot;,
+    &quot;High&quot;,
+    &quot;Low&quot;,
+    &quot;Close&quot;,
+    &quot;Volume&quot;,
+    &quot;Market Cap&quot;,
+    &quot;Time Open&quot;,
+    &quot;Time High&quot;,
+    &quot;Time Low&quot;,
+    &quot;Time Close&quot;
+  ],
+  &quot;sources&quot;: [
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;,
+    &quot;spec_column_alias&quot;
+  ]
+}</pre></td><td><a href="#fn-normalize_column_headers">normalize_column_headers</a> <code>spec:normalization.order=[&#x27;coin_alias&#x27;, &#x27;column_name&#x27;]</code><br><a href="#fn-normalize_column_headers">normalize_column_headers</a> <code>spec:normalization.fallback_order=[&#x27;mapped_path&#x27;, &#x27;positional_header&#x27;, &#x27;reject&#x27;]</code></td></tr><tr><td>crypto_data_compatibility</td><td>PASS</td><td><pre>{
+  &quot;aliases&quot;: [
+    &quot;btc&quot;,
+    &quot;bitcoin&quot;
+  ],
+  &quot;legacy_positional_fields&quot;: 10
+}</pre></td><td><a href="#fn-validate_crypto_data_signature">validate_crypto_data_signature</a> <code>spec:compatibility.crypto_data_legacy_signature=&#x27;coin_code,start_date,end_date,all_time,order_ascending,fiat,coin_name,id_number,headers,rows&#x27;</code><br><a href="#fn-validate_crypto_data_signature">validate_crypto_data_signature</a> <code>spec:compatibility.new_kw_only_fields=[&#x27;aliases&#x27;]</code></td></tr></tbody></table></section><h2>函数依据</h2><details id="fn-resolve_coin"><summary>resolve_coin</summary><pre>def resolve_coin(coin_code: Any = None, coin_name: Any = None, id_number: Any = None) -&gt; CoinIdentity:
+    if id_number is not None:
+        return CoinIdentity(
+            str(coin_code).upper() if coin_code is not None else None,
+            str(coin_name) if coin_name is not None else None,
+            int(id_number), (), &quot;input.id_number&quot;,
+            &quot;spec:request.id_number=bypasses coins.aliases&quot;,
+        )
+    code_key = normalize_key(coin_code) if coin_code not in (None, &quot;&quot;) else &quot;&quot;
+    name_key = normalize_key(coin_name) if coin_name not in (None, &quot;&quot;) else &quot;&quot;
+    by_symbol, by_alias = _canonical_index()
+
+    if name_key:
+        coin = by_alias.get(name_key)
+        if coin is not None and (not code_key or normalize_key(coin[&quot;symbol&quot;]) == code_key):
+            return _coin_identity(coin, &quot;coins.aliases&quot;)
+    if code_key:
+        coin = by_alias.get(code_key)
+        if coin is not None and not name_key:
+            return _coin_identity(coin, &quot;coins.aliases&quot;)
+        matches = by_symbol.get(code_key, [])
+        if len(matches) == 1 and not name_key:
+            return _coin_identity(matches[0], &quot;coins.canonical&quot;)
+        if matches and name_key:
+            for candidate in matches:
+                if name_key in {normalize_key(alias) for alias in candidate[&quot;aliases&quot;]}:
+                    return _coin_identity(candidate, &quot;coins.aliases&quot;)
+        if len(matches) &gt; 1 and not name_key:
+            raise AmbiguousCoinIdentity(
+                &quot;coin_code &#x27;{0}&#x27; is ambiguous; pass coin_name; &quot;.format(coin_code)
+                + rule_basis(&quot;coins.ambiguous_without_name_source&quot;)
+            )
+
+    source = (
+        get_rule(&quot;coins.unknown_name_source&quot;)
+        if name_key else get_rule(&quot;coins.unknown_symbol_source&quot;)
+    )
+    return CoinIdentity(
+        str(coin_code).upper() if coin_code is not None else None,
+        str(coin_name) if coin_name is not None else None,
+        None, (), source, rule_basis(&quot;normalization.fallback_order&quot;),
+    )
+</pre></details><details id="fn-resolve_fiat"><summary>resolve_fiat</summary><pre>def resolve_fiat(code: Any) -&gt; FiatIdentity:
+    raw = str(code)
+    key = normalize_key(raw)
+    ids = get_rule(&quot;fiat_ids.ids&quot;)
+    if key.upper() in ids:
+        return FiatIdentity(key.upper(), ids[key.upper()], &quot;fiat_ids.exact&quot;, rule_basis(&quot;fiat_ids.priority&quot;))
+    aliases = get_rule(&quot;fiat_ids.aliases&quot;)
+    alias_keys = {normalize_key(candidate): target for candidate, target in aliases.items()}
+    if key in alias_keys and alias_keys[key] in ids:
+        canonical = alias_keys[key]
+        return FiatIdentity(canonical, ids[canonical], &quot;fiat_ids.aliases&quot;, rule_basis(&quot;fiat_ids.priority&quot;))
+    raise ValueError(&quot;Unknown fiat &#x27;{0}&#x27;. Supported: {1}.&quot;.format(raw, &quot;, &quot;.join(sorted(ids))))
+</pre></details><details id="fn-validate_request_window"><summary>validate_request_window</summary><pre>def validate_request_window(start_value: str, end_value: str) -&gt; RequestWindow:
+    start = parse_spec_date(start_value)
+    end = parse_spec_date(end_value)
+    span_days = (end.date() - start.date()).days
+    if span_days &lt; 0 and not get_rule(&quot;windows.negative_span_is_valid&quot;):
+        raise InvalidSpecWindow(
+            &quot;end_date must be on or after start_date; &quot;
+            + rule_basis(&quot;windows.negative_span_is_valid&quot;)
+        )
+    offset = get_rule(&quot;windows.requested_start_to_upstream_start_offset_days&quot;)
+    upstream_start = start + dt.timedelta(days=offset)
+    return RequestWindow(
+        start=start, end=end, upstream_start=upstream_start, upstream_end=end,
+        time_start=to_unix_seconds(upstream_start), time_end=to_unix_seconds(end),
+        span_days=span_days,
+        basis=(rule_basis(&quot;windows.upstream_time_start_boundary&quot;) + &quot;; &quot; + rule_basis(&quot;windows.upstream_time_end_boundary&quot;)),
+    )
+</pre></details><details id="fn-reconcile_sources"><summary>reconcile_sources</summary><pre>def reconcile_sources(
+    snapshot: Optional[Dict[str, Any]],
+    live_response: Optional[Dict[str, Any]],
+    window: RequestWindow,
+    now: dt.datetime,
+    live_failure: bool = False,
+) -&gt; SourceDecision:
+    basis = [
+        rule_basis(&quot;source_policy.complete_coverage_required&quot;),
+        rule_basis(&quot;source_policy.snapshot_preferred_max_request_span_days&quot;),
+        rule_basis(&quot;source_policy.snapshot_fresh_max_age_days&quot;),
+        rule_basis(&quot;source_policy.conflict_winner&quot;),
+    ]
+    live_table = parse_quote_table(live_response, get_rule(&quot;source_policy.live_marker&quot;)) if live_response is not None else None
+
+    if snapshot is not None:
+        bounded_snapshot = _response_in_window(snapshot, window)
+        generated_at = parse_snapshot_generated_at(snapshot)
+        age_days = (now - generated_at).days
+        coverage_ok, missing = snapshot_coverage(bounded_snapshot, window)
+        span_ok = window.span_days &lt;= get_rule(&quot;source_policy.snapshot_preferred_max_request_span_days&quot;)
+        age_ok = 0 &lt;= age_days &lt;= get_rule(&quot;source_policy.snapshot_fresh_max_age_days&quot;)
+        eligible = coverage_ok and span_ok and age_ok
+        if eligible or (live_failure and coverage_ok and span_ok and age_days &gt;= 0):
+            snapshot_table = parse_quote_table(bounded_snapshot, get_rule(&quot;source_policy.snapshot_marker&quot;))
+            markers = [get_rule(&quot;source_policy.snapshot_marker&quot;)]
+            if live_failure:
+                markers.append(get_rule(&quot;source_policy.fallback_marker&quot;))
+            if not age_ok:
+                markers.append(get_rule(&quot;source_policy.stale_fallback_marker&quot;))
+            if live_table is not None:
+                conflicts: List[str] = []
+                for index, live_row in enumerate(live_table.rows):
+                    if index &gt;= len(snapshot_table.rows):
+                        conflicts.append(&quot;live row {0} absent from snapshot&quot;.format(index))
+                        continue
+                    snapshot_row = snapshot_table.rows[index]
+                    for position, (snapshot_value, live_value) in enumerate(zip(snapshot_row, live_row)):
+                        if snapshot_value != live_value:
+                            conflicts.append(&quot;{0}[{1}]: snapshot={2!r} live={3!r}&quot;.format(snapshot_table.headers[position], index, snapshot_value, live_value))
+                if len(live_table.rows) != len(snapshot_table.rows):
+                    conflicts.append(&quot;row count: snapshot={0} live={1}&quot;.format(len(snapshot_table.rows), len(live_table.rows)))
+                if snapshot_table.markers:
+                    markers.extend(snapshot_table.markers)
+                if conflicts:
+                    markers.append(get_rule(&quot;source_policy.degraded_marker_on_conflict&quot;))
+                return SourceDecision(bounded_snapshot, get_rule(&quot;source_policy.snapshot_marker&quot;), tuple(markers), tuple(conflicts), default_records(snapshot_table), tuple(basis))
+            return SourceDecision(
+                bounded_snapshot, get_rule(&quot;source_policy.snapshot_marker&quot;),
+                tuple(markers) + snapshot_table.markers,
+                (), default_records(snapshot_table), tuple(basis),
+            )
+        reason = &quot;coverage&quot; if not coverage_ok else &quot;span&quot; if not span_ok else &quot;age&quot;
+        basis.append(&quot;spec:source_policy.ineligible_reason={!r}; missing={!r}&quot;.format(reason, missing))
+
+    if live_response is not None:
+        bounded_live = _response_in_window(live_response, window)
+        assert live_table is not None
+        return SourceDecision(
+            bounded_live, get_rule(&quot;source_policy.live_marker&quot;),
+            (get_rule(&quot;source_policy.live_marker&quot;),) + live_table.markers,
+            (), (), tuple(basis),
+        )
+
+    raise InvalidSpecResponse(&quot;no live response or builtin snapshot is available&quot;)
+</pre></details><details id="fn-normalize_column_headers"><summary>normalize_column_headers</summary><pre>def normalize_column_headers(input_headers: Sequence[Any]) -&gt; Tuple[Tuple[str, ...], Tuple[str, ...], str]:
+    aliases = get_rule(&quot;table.input_column_aliases&quot;)
+    normalized: List[str] = []
+    sources: List[str] = []
+    used: Dict[str, int] = {}
+    for position, header in enumerate(input_headers):
+        key = normalize_key(header)
+        mapped_key: Optional[str] = None
+        for candidate_key, names in aliases.items():
+            if key in {normalize_key(name) for name in names}:
+                mapped_key = candidate_key
+                break
+        if mapped_key is not None:
+            source = get_rule(&quot;table.provenance_sources.alias&quot;)
+        elif key in {normalize_key(value[&quot;header&quot;]) for value in get_rule(&quot;table.canonical_columns&quot;)}:
+            mapped_key = next(value[&quot;key&quot;] for value in get_rule(&quot;table.canonical_columns&quot;) if normalize_key(value[&quot;header&quot;]) == key)
+            source = get_rule(&quot;table.provenance_sources.canonical&quot;)
+        elif get_rule(&quot;table.unknown_columns_positional_fallback&quot;) and position &lt; len(get_rule(&quot;table.canonical_columns&quot;)):
+            mapped_key = get_rule(&quot;table.canonical_columns&quot;)[position][&quot;key&quot;]
+            source = get_rule(&quot;table.provenance_sources.positional&quot;)
+        else:
+            raise InvalidSpecResponse(&quot;column mapping failed; &quot; + rule_basis(&quot;normalization.fallback_order&quot;))
+        if mapped_key in used:
+            raise InvalidSpecResponse(&quot;duplicate normalized column: {0}&quot;.format(mapped_key))
+        used[mapped_key] = position
+        normalized.append(_column_by_key(mapped_key)[&quot;header&quot;])
+        sources.append(source)
+    return tuple(normalized), tuple(sources), rule_basis(&quot;normalization.order&quot;)
+</pre></details><details id="fn-parse_quote_table"><summary>parse_quote_table</summary><pre>def parse_quote_table(response: Dict[str, Any], source_kind: str) -&gt; ParsedTable:
+    if source_kind not in {get_rule(&quot;source_policy.snapshot_marker&quot;), get_rule(&quot;source_policy.live_marker&quot;)}:
+        raise SpecIntegrityError(&quot;unknown response source_kind: {0}&quot;.format(source_kind))
+    rows: List[Tuple[Any, ...]] = []
+    field_sources: Dict[str, List[str]] = {column[&quot;key&quot;]: [] for column in get_rule(&quot;table.canonical_columns&quot;)}
+    markers: List[str] = []
+    for quote in extract_quotes(response):
+        row: List[Any] = []
+        for column in get_rule(&quot;table.canonical_columns&quot;):
+            found, value, path = _extract_path(quote, column[&quot;paths&quot;])
+            if not found:
+                if column[&quot;required&quot;]:
+                    raise InvalidSpecResponse(&quot;required {0} field missing; &quot;.format(column[&quot;key&quot;]) + rule_basis(&quot;table.missing_required_policy&quot;))
+                value = get_rule(&quot;table.default_values&quot;)[column[&quot;kind&quot;]]
+                if source_kind == get_rule(&quot;source_policy.snapshot_marker&quot;):
+                    source = get_rule(&quot;table.provenance_sources.default&quot;)
+                    markers.append(get_rule(&quot;source_policy.snapshot_defaults_marker&quot;))
+                else:
+                    source = get_rule(&quot;table.provenance_sources.missing&quot;)
+                    markers.append(get_rule(&quot;source_policy.live_missing_marker&quot;))
+            else:
+                source = get_rule(&quot;table.provenance_sources.canonical&quot;)
+                if column[&quot;kind&quot;] == &quot;date&quot;:
+                    value = format_spec_date(parse_iso_utc(value))
+                elif column[&quot;kind&quot;] == &quot;timestamp&quot;:
+                    parse_iso_utc(value)
+            row.append(value)
+            field_sources[column[&quot;key&quot;]].append(source)
+        rows.append(tuple(row))
+    rows.sort(key=lambda row: dt.datetime.strptime(row[0], get_rule(&quot;time.date_output_format&quot;)).date(), reverse=True)
+    markers = sorted(set(markers))
+    return ParsedTable(
+        canonical_headers(), tuple(rows),
+        {key: tuple(values) for key, values in field_sources.items()},
+        tuple(markers), rule_basis(&quot;windows.row_order&quot;),
+    )
+</pre></details><details id="fn-validate_crypto_data_signature"><summary>validate_crypto_data_signature</summary><pre>def validate_crypto_data_signature():
+    &quot;&quot;&quot;Reject any change that breaks the legacy positional CryptoData contract.&quot;&quot;&quot;
+    parameters = list(inspect.signature(CryptoData.__init__).parameters.values())[1:]
+    positional = [
+        parameter.name
+        for parameter in parameters
+        if parameter.kind
+        in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
+    ]
+    expected = get_rule(&quot;compatibility.legacy_fields_must_remain&quot;)
+    keyword_only = [
+        parameter.name
+        for parameter in parameters
+        if parameter.kind == inspect.Parameter.KEYWORD_ONLY
+    ]
+    if (
+        positional != expected
+        or keyword_only != get_rule(&quot;compatibility.new_kw_only_fields&quot;)
+        or len(positional) != get_rule(&quot;compatibility.maximum_positional_arity&quot;)
+    ):
+        raise SpecIntegrityError(
+            &quot;CryptoData legacy signature drift; &quot;
+            + get_rule(&quot;compatibility.crypto_data_legacy_signature&quot;)
+        )
+</pre></details><details id="fn-validate_unix_timestamp"><summary>validate_unix_timestamp</summary><pre>def validate_unix_timestamp(value: Any) -&gt; int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise InvalidSpecTimestamp(rule_basis(&quot;time.timestamp_kind&quot;))
+    if abs(value) &gt;= get_rule(&quot;time.millisecond_threshold_abs&quot;):
+        raise InvalidSpecTimestamp(&quot;timestamp unit must be seconds; &quot; + rule_basis(&quot;time.timestamp_unit&quot;))
+    return value
+</pre></details><details id="fn-iter_upstream_windows"><summary>iter_upstream_windows</summary><pre>def iter_upstream_windows(window: RequestWindow) -&gt; Tuple[Tuple[dt.datetime, dt.datetime], ...]:
+    page_size = dt.timedelta(days=get_rule(&quot;windows.page_size_days&quot;))
+    advance = dt.timedelta(days=get_rule(&quot;windows.chunk_advance_days_after_end&quot;))
+    chunks: List[Tuple[dt.datetime, dt.datetime]] = []
+    cursor = window.upstream_start
+    while cursor &lt; window.upstream_end:
+        chunk_end = min(cursor + page_size, window.upstream_end)
+        chunks.append((cursor, chunk_end))
+        cursor = chunk_end + advance
+    return tuple(chunks)
+</pre></details></body></html>

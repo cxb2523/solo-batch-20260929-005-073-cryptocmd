@@ -1,0 +1,1754 @@
+{
+  "strict": true,
+  "cases": [
+    {
+      "case_id": "snapshot_preferred_conflict",
+      "conclusions": [
+        {
+          "path": "coin_alias",
+          "function": "resolve_coin",
+          "ok": true,
+          "result": {
+            "symbol": "BTC",
+            "name": "Bitcoin",
+            "id": 1,
+            "aliases": [
+              "bitcoin",
+              "btc",
+              "xbt",
+              "bit coin"
+            ],
+            "source": "coins.aliases"
+          },
+          "basis": [
+            "spec:normalization.order=['coin_alias', 'column_name']",
+            "spec:normalization.order=['coin_alias', 'column_name']"
+          ]
+        },
+        {
+          "path": "fiat_id",
+          "function": "resolve_fiat",
+          "ok": true,
+          "result": {
+            "code": "USD",
+            "id": 2781,
+            "source": "fiat_ids.aliases"
+          },
+          "basis": [
+            "spec:fiat_ids.priority=['exact_input_case_insensitive', 'declared_alias_case_insensitive']",
+            "spec:fiat_ids.priority=['exact_input_case_insensitive', 'declared_alias_case_insensitive']"
+          ]
+        },
+        {
+          "path": "request_window",
+          "function": "validate_request_window",
+          "ok": true,
+          "result": {
+            "start": "23-09-2026",
+            "end": "24-09-2026",
+            "span_days": 1,
+            "time_start": 1790035200,
+            "time_end": 1790208000,
+            "pages": 1
+          },
+          "basis": [
+            "spec:windows.upstream_time_start_boundary='exclusive'; spec:windows.upstream_time_end_boundary='inclusive'",
+            "spec:windows.same_day_span_is_valid=True"
+          ]
+        },
+        {
+          "path": "timestamp_unit",
+          "function": "validate_unix_timestamp",
+          "ok": true,
+          "result": {
+            "seconds": 1790035200
+          },
+          "basis": [
+            "spec:time.timestamp_unit='second'",
+            "spec:time.timestamp_kind='unix_integer'"
+          ]
+        },
+        {
+          "path": "snapshot_path",
+          "function": "parse_quote_table",
+          "ok": true,
+          "result": {
+            "source": "builtin_snapshot",
+            "headers": [
+              "Date",
+              "Open",
+              "High",
+              "Low",
+              "Close",
+              "Volume",
+              "Market Cap",
+              "Time Open",
+              "Time High",
+              "Time Low",
+              "Time Close"
+            ],
+            "rows": [
+              [
+                "24-09-2026",
+                50500.0,
+                51500.0,
+                50000.0,
+                51000.0,
+                1100000.0,
+                910000000000.0,
+                "2026-09-24T00:00:00.000Z",
+                "2026-09-24T12:00:00.000Z",
+                "2026-09-24T06:00:00.000Z",
+                "2026-09-24T23:59:59.999Z"
+              ],
+              [
+                "23-09-2026",
+                50000.0,
+                51000.0,
+                49000.0,
+                50500.0,
+                1000000.0,
+                900000000000.0,
+                "2026-09-23T00:00:00.000Z",
+                "2026-09-23T12:00:00.000Z",
+                "2026-09-23T06:00:00.000Z",
+                "2026-09-23T23:59:59.999Z"
+              ]
+            ],
+            "markers": [],
+            "field_sources": {
+              "date": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "open": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "high": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "low": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "close": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "volume": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "market_cap": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "time_open": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "time_high": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "time_low": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "time_close": [
+                "spec_column_path",
+                "spec_column_path"
+              ]
+            }
+          },
+          "basis": [
+            "spec:windows.row_order='descending_by_quote_date'",
+            "spec:source_policy.snapshot_marker='builtin_snapshot'"
+          ]
+        },
+        {
+          "path": "live_path",
+          "function": "parse_quote_table",
+          "ok": true,
+          "result": {
+            "source": "live_response",
+            "headers": [
+              "Date",
+              "Open",
+              "High",
+              "Low",
+              "Close",
+              "Volume",
+              "Market Cap",
+              "Time Open",
+              "Time High",
+              "Time Low",
+              "Time Close"
+            ],
+            "rows": [
+              [
+                "24-09-2026",
+                50599.0,
+                51500.0,
+                50000.0,
+                51000.0,
+                1100000.0,
+                910000000000.0,
+                "2026-09-24T00:00:00.000Z",
+                "2026-09-24T12:00:00.000Z",
+                "2026-09-24T06:00:00.000Z",
+                "2026-09-24T23:59:59.999Z"
+              ],
+              [
+                "23-09-2026",
+                50000.0,
+                51000.0,
+                49000.0,
+                50500.0,
+                1000000.0,
+                900000000000.0,
+                "2026-09-23T00:00:00.000Z",
+                "2026-09-23T12:00:00.000Z",
+                "2026-09-23T06:00:00.000Z",
+                "2026-09-23T23:59:59.999Z"
+              ]
+            ],
+            "markers": [],
+            "field_sources": {
+              "date": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "open": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "high": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "low": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "close": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "volume": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "market_cap": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "time_open": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "time_high": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "time_low": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "time_close": [
+                "spec_column_path",
+                "spec_column_path"
+              ]
+            }
+          },
+          "basis": [
+            "spec:windows.row_order='descending_by_quote_date'",
+            "spec:source_policy.live_marker='live_response'"
+          ]
+        },
+        {
+          "path": "snapshot_vs_live",
+          "function": "reconcile_sources",
+          "ok": true,
+          "result": {
+            "source": "builtin_snapshot",
+            "markers": [
+              "builtin_snapshot",
+              "snapshot_conflict"
+            ],
+            "conflicts": [
+              "Open[0]: snapshot=50500.0 live=50599.0"
+            ],
+            "default_records": [],
+            "row_count": 2,
+            "rows": [
+              [
+                "24-09-2026",
+                50500.0,
+                51500.0,
+                50000.0,
+                51000.0,
+                1100000.0,
+                910000000000.0,
+                "2026-09-24T00:00:00.000Z",
+                "2026-09-24T12:00:00.000Z",
+                "2026-09-24T06:00:00.000Z",
+                "2026-09-24T23:59:59.999Z"
+              ],
+              [
+                "23-09-2026",
+                50000.0,
+                51000.0,
+                49000.0,
+                50500.0,
+                1000000.0,
+                900000000000.0,
+                "2026-09-23T00:00:00.000Z",
+                "2026-09-23T12:00:00.000Z",
+                "2026-09-23T06:00:00.000Z",
+                "2026-09-23T23:59:59.999Z"
+              ]
+            ]
+          },
+          "basis": [
+            "spec:source_policy.complete_coverage_required=True",
+            "spec:source_policy.snapshot_preferred_max_request_span_days=1",
+            "spec:source_policy.snapshot_fresh_max_age_days=7",
+            "spec:source_policy.conflict_winner='snapshot'"
+          ]
+        },
+        {
+          "path": "column_name",
+          "function": "normalize_column_headers",
+          "ok": true,
+          "result": {
+            "headers": [
+              "Date",
+              "Open",
+              "High",
+              "Low",
+              "Close",
+              "Volume",
+              "Market Cap",
+              "Time Open",
+              "Time High",
+              "Time Low",
+              "Time Close"
+            ],
+            "sources": [
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias"
+            ]
+          },
+          "basis": [
+            "spec:normalization.order=['coin_alias', 'column_name']",
+            "spec:normalization.fallback_order=['mapped_path', 'positional_header', 'reject']"
+          ]
+        },
+        {
+          "path": "crypto_data_compatibility",
+          "function": "validate_crypto_data_signature",
+          "ok": true,
+          "result": {
+            "aliases": [
+              "btc",
+              "bitcoin"
+            ],
+            "legacy_positional_fields": 10
+          },
+          "basis": [
+            "spec:compatibility.crypto_data_legacy_signature='coin_code,start_date,end_date,all_time,order_ascending,fiat,coin_name,id_number,headers,rows'",
+            "spec:compatibility.new_kw_only_fields=['aliases']"
+          ]
+        }
+      ],
+      "errors": [],
+      "fingerprint": "c76d1b14b41312704d85246b884c3fa4e089208bb8e6a75089f2e0f6325a640e",
+      "expected": {
+        "source": "builtin_snapshot",
+        "markers": [
+          "builtin_snapshot",
+          "snapshot_conflict"
+        ],
+        "coin_id": 1,
+        "fiat_id": 2781,
+        "conflict_count": 1
+      }
+    },
+    {
+      "case_id": "snapshot_defaulted_fields",
+      "conclusions": [
+        {
+          "path": "coin_alias",
+          "function": "resolve_coin",
+          "ok": true,
+          "result": {
+            "symbol": "BTC",
+            "name": "Bitcoin",
+            "id": 1,
+            "aliases": [
+              "bitcoin",
+              "btc",
+              "xbt",
+              "bit coin"
+            ],
+            "source": "coins.aliases"
+          },
+          "basis": [
+            "spec:normalization.order=['coin_alias', 'column_name']",
+            "spec:normalization.order=['coin_alias', 'column_name']"
+          ]
+        },
+        {
+          "path": "fiat_id",
+          "function": "resolve_fiat",
+          "ok": true,
+          "result": {
+            "code": "USD",
+            "id": 2781,
+            "source": "fiat_ids.aliases"
+          },
+          "basis": [
+            "spec:fiat_ids.priority=['exact_input_case_insensitive', 'declared_alias_case_insensitive']",
+            "spec:fiat_ids.priority=['exact_input_case_insensitive', 'declared_alias_case_insensitive']"
+          ]
+        },
+        {
+          "path": "request_window",
+          "function": "validate_request_window",
+          "ok": true,
+          "result": {
+            "start": "24-09-2026",
+            "end": "24-09-2026",
+            "span_days": 0,
+            "time_start": 1790121600,
+            "time_end": 1790208000,
+            "pages": 1
+          },
+          "basis": [
+            "spec:windows.upstream_time_start_boundary='exclusive'; spec:windows.upstream_time_end_boundary='inclusive'",
+            "spec:windows.same_day_span_is_valid=True"
+          ]
+        },
+        {
+          "path": "timestamp_unit",
+          "function": "validate_unix_timestamp",
+          "ok": true,
+          "result": {
+            "seconds": 1790121600
+          },
+          "basis": [
+            "spec:time.timestamp_unit='second'",
+            "spec:time.timestamp_kind='unix_integer'"
+          ]
+        },
+        {
+          "path": "snapshot_path",
+          "function": "parse_quote_table",
+          "ok": true,
+          "result": {
+            "source": "builtin_snapshot",
+            "headers": [
+              "Date",
+              "Open",
+              "High",
+              "Low",
+              "Close",
+              "Volume",
+              "Market Cap",
+              "Time Open",
+              "Time High",
+              "Time Low",
+              "Time Close"
+            ],
+            "rows": [
+              [
+                "24-09-2026",
+                50500.0,
+                51500.0,
+                50000.0,
+                51000.0,
+                1100000.0,
+                910000000000.0,
+                "2026-09-24T00:00:00.000Z",
+                "2026-09-24T12:00:00.000Z",
+                null,
+                "2026-09-24T23:59:59.999Z"
+              ]
+            ],
+            "markers": [
+              "snapshot_defaulted_fields"
+            ],
+            "field_sources": {
+              "date": [
+                "spec_column_path"
+              ],
+              "open": [
+                "spec_column_path"
+              ],
+              "high": [
+                "spec_column_path"
+              ],
+              "low": [
+                "spec_column_path"
+              ],
+              "close": [
+                "spec_column_path"
+              ],
+              "volume": [
+                "spec_column_path"
+              ],
+              "market_cap": [
+                "spec_column_path"
+              ],
+              "time_open": [
+                "spec_column_path"
+              ],
+              "time_high": [
+                "spec_column_path"
+              ],
+              "time_low": [
+                "spec_snapshot_default"
+              ],
+              "time_close": [
+                "spec_column_path"
+              ]
+            }
+          },
+          "basis": [
+            "spec:windows.row_order='descending_by_quote_date'",
+            "spec:source_policy.snapshot_marker='builtin_snapshot'"
+          ]
+        },
+        {
+          "path": "snapshot_vs_live",
+          "function": "reconcile_sources",
+          "ok": true,
+          "result": {
+            "source": "builtin_snapshot",
+            "markers": [
+              "builtin_snapshot",
+              "snapshot_defaulted_fields"
+            ],
+            "conflicts": [],
+            "default_records": [
+              {
+                "row": 0,
+                "date": "24-09-2026",
+                "field": "Time Low",
+                "value": null,
+                "source": "spec_snapshot_default"
+              }
+            ],
+            "row_count": 1,
+            "rows": [
+              [
+                "24-09-2026",
+                50500.0,
+                51500.0,
+                50000.0,
+                51000.0,
+                1100000.0,
+                910000000000.0,
+                "2026-09-24T00:00:00.000Z",
+                "2026-09-24T12:00:00.000Z",
+                null,
+                "2026-09-24T23:59:59.999Z"
+              ]
+            ]
+          },
+          "basis": [
+            "spec:source_policy.complete_coverage_required=True",
+            "spec:source_policy.snapshot_preferred_max_request_span_days=1",
+            "spec:source_policy.snapshot_fresh_max_age_days=7",
+            "spec:source_policy.conflict_winner='snapshot'"
+          ]
+        },
+        {
+          "path": "column_name",
+          "function": "normalize_column_headers",
+          "ok": true,
+          "result": {
+            "headers": [
+              "Date",
+              "Open",
+              "High",
+              "Low",
+              "Close",
+              "Volume",
+              "Market Cap",
+              "Time Open",
+              "Time High",
+              "Time Low",
+              "Time Close"
+            ],
+            "sources": [
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias"
+            ]
+          },
+          "basis": [
+            "spec:normalization.order=['coin_alias', 'column_name']",
+            "spec:normalization.fallback_order=['mapped_path', 'positional_header', 'reject']"
+          ]
+        },
+        {
+          "path": "crypto_data_compatibility",
+          "function": "validate_crypto_data_signature",
+          "ok": true,
+          "result": {
+            "aliases": [
+              "btc",
+              "bitcoin"
+            ],
+            "legacy_positional_fields": 10
+          },
+          "basis": [
+            "spec:compatibility.crypto_data_legacy_signature='coin_code,start_date,end_date,all_time,order_ascending,fiat,coin_name,id_number,headers,rows'",
+            "spec:compatibility.new_kw_only_fields=['aliases']"
+          ]
+        }
+      ],
+      "errors": [],
+      "fingerprint": "ee0510abe060414625d86cd7a48b0ea969ef89d2d1cb916cdd20444c7b17de46",
+      "expected": {
+        "source": "builtin_snapshot",
+        "markers": [
+          "builtin_snapshot",
+          "snapshot_defaulted_fields"
+        ],
+        "coin_id": 1,
+        "fiat_id": 2781,
+        "default_count": 1
+      }
+    },
+    {
+      "case_id": "live_for_wide_window",
+      "conclusions": [
+        {
+          "path": "coin_alias",
+          "function": "resolve_coin",
+          "ok": true,
+          "result": {
+            "symbol": "ETH",
+            "name": "Ethereum",
+            "id": 1027,
+            "aliases": [
+              "ethereum",
+              "eth",
+              "ether"
+            ],
+            "source": "coins.aliases"
+          },
+          "basis": [
+            "spec:normalization.order=['coin_alias', 'column_name']",
+            "spec:normalization.order=['coin_alias', 'column_name']"
+          ]
+        },
+        {
+          "path": "fiat_id",
+          "function": "resolve_fiat",
+          "ok": true,
+          "result": {
+            "code": "EUR",
+            "id": 2790,
+            "source": "fiat_ids.exact"
+          },
+          "basis": [
+            "spec:fiat_ids.priority=['exact_input_case_insensitive', 'declared_alias_case_insensitive']",
+            "spec:fiat_ids.priority=['exact_input_case_insensitive', 'declared_alias_case_insensitive']"
+          ]
+        },
+        {
+          "path": "request_window",
+          "function": "validate_request_window",
+          "ok": true,
+          "result": {
+            "start": "20-09-2026",
+            "end": "24-09-2026",
+            "span_days": 4,
+            "time_start": 1789776000,
+            "time_end": 1790208000,
+            "pages": 1
+          },
+          "basis": [
+            "spec:windows.upstream_time_start_boundary='exclusive'; spec:windows.upstream_time_end_boundary='inclusive'",
+            "spec:windows.same_day_span_is_valid=True"
+          ]
+        },
+        {
+          "path": "timestamp_unit",
+          "function": "validate_unix_timestamp",
+          "ok": true,
+          "result": {
+            "seconds": 1789776000
+          },
+          "basis": [
+            "spec:time.timestamp_unit='second'",
+            "spec:time.timestamp_kind='unix_integer'"
+          ]
+        },
+        {
+          "path": "snapshot_path",
+          "function": "parse_quote_table",
+          "ok": true,
+          "result": {
+            "source": "builtin_snapshot",
+            "headers": [
+              "Date",
+              "Open",
+              "High",
+              "Low",
+              "Close",
+              "Volume",
+              "Market Cap",
+              "Time Open",
+              "Time High",
+              "Time Low",
+              "Time Close"
+            ],
+            "rows": [
+              [
+                "23-09-2026",
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                "2026-09-23T00:00:00.000Z",
+                "2026-09-23T12:00:00.000Z",
+                "2026-09-23T06:00:00.000Z",
+                "2026-09-23T23:59:59.999Z"
+              ]
+            ],
+            "markers": [],
+            "field_sources": {
+              "date": [
+                "spec_column_path"
+              ],
+              "open": [
+                "spec_column_path"
+              ],
+              "high": [
+                "spec_column_path"
+              ],
+              "low": [
+                "spec_column_path"
+              ],
+              "close": [
+                "spec_column_path"
+              ],
+              "volume": [
+                "spec_column_path"
+              ],
+              "market_cap": [
+                "spec_column_path"
+              ],
+              "time_open": [
+                "spec_column_path"
+              ],
+              "time_high": [
+                "spec_column_path"
+              ],
+              "time_low": [
+                "spec_column_path"
+              ],
+              "time_close": [
+                "spec_column_path"
+              ]
+            }
+          },
+          "basis": [
+            "spec:windows.row_order='descending_by_quote_date'",
+            "spec:source_policy.snapshot_marker='builtin_snapshot'"
+          ]
+        },
+        {
+          "path": "live_path",
+          "function": "parse_quote_table",
+          "ok": true,
+          "result": {
+            "source": "live_response",
+            "headers": [
+              "Date",
+              "Open",
+              "High",
+              "Low",
+              "Close",
+              "Volume",
+              "Market Cap",
+              "Time Open",
+              "Time High",
+              "Time Low",
+              "Time Close"
+            ],
+            "rows": [
+              [
+                "24-09-2026",
+                3.0,
+                3.0,
+                3.0,
+                3.0,
+                3.0,
+                3.0,
+                "2026-09-24T00:00:00.000Z",
+                "2026-09-24T12:00:00.000Z",
+                "2026-09-24T06:00:00.000Z",
+                "2026-09-24T23:59:59.999Z"
+              ],
+              [
+                "20-09-2026",
+                2.0,
+                2.0,
+                2.0,
+                2.0,
+                2.0,
+                2.0,
+                "2026-09-20T00:00:00.000Z",
+                "2026-09-20T12:00:00.000Z",
+                "2026-09-20T06:00:00.000Z",
+                "2026-09-20T23:59:59.999Z"
+              ]
+            ],
+            "markers": [],
+            "field_sources": {
+              "date": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "open": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "high": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "low": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "close": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "volume": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "market_cap": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "time_open": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "time_high": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "time_low": [
+                "spec_column_path",
+                "spec_column_path"
+              ],
+              "time_close": [
+                "spec_column_path",
+                "spec_column_path"
+              ]
+            }
+          },
+          "basis": [
+            "spec:windows.row_order='descending_by_quote_date'",
+            "spec:source_policy.live_marker='live_response'"
+          ]
+        },
+        {
+          "path": "snapshot_vs_live",
+          "function": "reconcile_sources",
+          "ok": true,
+          "result": {
+            "source": "live_response",
+            "markers": [
+              "live_response"
+            ],
+            "conflicts": [],
+            "default_records": [],
+            "row_count": 2,
+            "rows": [
+              [
+                "24-09-2026",
+                3.0,
+                3.0,
+                3.0,
+                3.0,
+                3.0,
+                3.0,
+                "2026-09-24T00:00:00.000Z",
+                "2026-09-24T12:00:00.000Z",
+                "2026-09-24T06:00:00.000Z",
+                "2026-09-24T23:59:59.999Z"
+              ],
+              [
+                "20-09-2026",
+                2.0,
+                2.0,
+                2.0,
+                2.0,
+                2.0,
+                2.0,
+                "2026-09-20T00:00:00.000Z",
+                "2026-09-20T12:00:00.000Z",
+                "2026-09-20T06:00:00.000Z",
+                "2026-09-20T23:59:59.999Z"
+              ]
+            ]
+          },
+          "basis": [
+            "spec:source_policy.complete_coverage_required=True",
+            "spec:source_policy.snapshot_preferred_max_request_span_days=1",
+            "spec:source_policy.snapshot_fresh_max_age_days=7",
+            "spec:source_policy.conflict_winner='snapshot'",
+            "spec:source_policy.ineligible_reason='coverage'; missing=('20-09-2026', '21-09-2026', '22-09-2026', '24-09-2026')"
+          ]
+        },
+        {
+          "path": "column_name",
+          "function": "normalize_column_headers",
+          "ok": true,
+          "result": {
+            "headers": [
+              "Date",
+              "Open",
+              "High",
+              "Low",
+              "Close",
+              "Volume",
+              "Market Cap",
+              "Time Open",
+              "Time High",
+              "Time Low",
+              "Time Close"
+            ],
+            "sources": [
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias"
+            ]
+          },
+          "basis": [
+            "spec:normalization.order=['coin_alias', 'column_name']",
+            "spec:normalization.fallback_order=['mapped_path', 'positional_header', 'reject']"
+          ]
+        },
+        {
+          "path": "crypto_data_compatibility",
+          "function": "validate_crypto_data_signature",
+          "ok": true,
+          "result": {
+            "aliases": [
+              "btc",
+              "bitcoin"
+            ],
+            "legacy_positional_fields": 10
+          },
+          "basis": [
+            "spec:compatibility.crypto_data_legacy_signature='coin_code,start_date,end_date,all_time,order_ascending,fiat,coin_name,id_number,headers,rows'",
+            "spec:compatibility.new_kw_only_fields=['aliases']"
+          ]
+        }
+      ],
+      "errors": [],
+      "fingerprint": "04d5428387200a7297985c62b4be514130a9b72ac79375acbeb7b4d715c8822f",
+      "expected": {
+        "source": "live_response",
+        "markers": [
+          "live_response"
+        ],
+        "coin_id": 1027,
+        "fiat_id": 2790,
+        "row_count": 2
+      }
+    },
+    {
+      "case_id": "positional_header_fallback",
+      "conclusions": [
+        {
+          "path": "coin_alias",
+          "function": "resolve_coin",
+          "ok": true,
+          "result": {
+            "symbol": "5426",
+            "name": null,
+            "id": 5426,
+            "aliases": [],
+            "source": "input.id_number"
+          },
+          "basis": [
+            "spec:request.id_number=bypasses coins.aliases",
+            "spec:normalization.order=['coin_alias', 'column_name']"
+          ]
+        },
+        {
+          "path": "fiat_id",
+          "function": "resolve_fiat",
+          "ok": true,
+          "result": {
+            "code": "USD",
+            "id": 2781,
+            "source": "fiat_ids.exact"
+          },
+          "basis": [
+            "spec:fiat_ids.priority=['exact_input_case_insensitive', 'declared_alias_case_insensitive']",
+            "spec:fiat_ids.priority=['exact_input_case_insensitive', 'declared_alias_case_insensitive']"
+          ]
+        },
+        {
+          "path": "request_window",
+          "function": "validate_request_window",
+          "ok": true,
+          "result": {
+            "start": "24-09-2026",
+            "end": "24-09-2026",
+            "span_days": 0,
+            "time_start": 1790121600,
+            "time_end": 1790208000,
+            "pages": 1
+          },
+          "basis": [
+            "spec:windows.upstream_time_start_boundary='exclusive'; spec:windows.upstream_time_end_boundary='inclusive'",
+            "spec:windows.same_day_span_is_valid=True"
+          ]
+        },
+        {
+          "path": "timestamp_unit",
+          "function": "validate_unix_timestamp",
+          "ok": true,
+          "result": {
+            "seconds": 1790121600
+          },
+          "basis": [
+            "spec:time.timestamp_unit='second'",
+            "spec:time.timestamp_kind='unix_integer'"
+          ]
+        },
+        {
+          "path": "snapshot_path",
+          "function": "parse_quote_table",
+          "ok": true,
+          "result": {
+            "source": "builtin_snapshot",
+            "headers": [
+              "Date",
+              "Open",
+              "High",
+              "Low",
+              "Close",
+              "Volume",
+              "Market Cap",
+              "Time Open",
+              "Time High",
+              "Time Low",
+              "Time Close"
+            ],
+            "rows": [
+              [
+                "24-09-2026",
+                100.0,
+                101.0,
+                99.0,
+                100.5,
+                42.0,
+                9000.0,
+                "2026-09-24T00:00:00.000Z",
+                "2026-09-24T12:00:00.000Z",
+                "2026-09-24T06:00:00.000Z",
+                "2026-09-24T23:59:59.999Z"
+              ]
+            ],
+            "markers": [],
+            "field_sources": {
+              "date": [
+                "spec_column_path"
+              ],
+              "open": [
+                "spec_column_path"
+              ],
+              "high": [
+                "spec_column_path"
+              ],
+              "low": [
+                "spec_column_path"
+              ],
+              "close": [
+                "spec_column_path"
+              ],
+              "volume": [
+                "spec_column_path"
+              ],
+              "market_cap": [
+                "spec_column_path"
+              ],
+              "time_open": [
+                "spec_column_path"
+              ],
+              "time_high": [
+                "spec_column_path"
+              ],
+              "time_low": [
+                "spec_column_path"
+              ],
+              "time_close": [
+                "spec_column_path"
+              ]
+            }
+          },
+          "basis": [
+            "spec:windows.row_order='descending_by_quote_date'",
+            "spec:source_policy.snapshot_marker='builtin_snapshot'"
+          ]
+        },
+        {
+          "path": "snapshot_vs_live",
+          "function": "reconcile_sources",
+          "ok": true,
+          "result": {
+            "source": "builtin_snapshot",
+            "markers": [
+              "builtin_snapshot"
+            ],
+            "conflicts": [],
+            "default_records": [],
+            "row_count": 1,
+            "rows": [
+              [
+                "24-09-2026",
+                100.0,
+                101.0,
+                99.0,
+                100.5,
+                42.0,
+                9000.0,
+                "2026-09-24T00:00:00.000Z",
+                "2026-09-24T12:00:00.000Z",
+                "2026-09-24T06:00:00.000Z",
+                "2026-09-24T23:59:59.999Z"
+              ]
+            ]
+          },
+          "basis": [
+            "spec:source_policy.complete_coverage_required=True",
+            "spec:source_policy.snapshot_preferred_max_request_span_days=1",
+            "spec:source_policy.snapshot_fresh_max_age_days=7",
+            "spec:source_policy.conflict_winner='snapshot'"
+          ]
+        },
+        {
+          "path": "column_name",
+          "function": "normalize_column_headers",
+          "ok": true,
+          "result": {
+            "headers": [
+              "Date",
+              "Open",
+              "High",
+              "Low",
+              "Close",
+              "Volume",
+              "Market Cap",
+              "Time Open",
+              "Time High",
+              "Time Low",
+              "Time Close"
+            ],
+            "sources": [
+              "spec_column_positional_fallback",
+              "spec_column_positional_fallback",
+              "spec_column_positional_fallback",
+              "spec_column_positional_fallback",
+              "spec_column_positional_fallback",
+              "spec_column_positional_fallback",
+              "spec_column_alias",
+              "spec_column_positional_fallback",
+              "spec_column_positional_fallback",
+              "spec_column_positional_fallback",
+              "spec_column_positional_fallback"
+            ]
+          },
+          "basis": [
+            "spec:normalization.order=['coin_alias', 'column_name']",
+            "spec:normalization.fallback_order=['mapped_path', 'positional_header', 'reject']"
+          ]
+        },
+        {
+          "path": "crypto_data_compatibility",
+          "function": "validate_crypto_data_signature",
+          "ok": true,
+          "result": {
+            "aliases": [
+              "btc",
+              "bitcoin"
+            ],
+            "legacy_positional_fields": 10
+          },
+          "basis": [
+            "spec:compatibility.crypto_data_legacy_signature='coin_code,start_date,end_date,all_time,order_ascending,fiat,coin_name,id_number,headers,rows'",
+            "spec:compatibility.new_kw_only_fields=['aliases']"
+          ]
+        }
+      ],
+      "errors": [],
+      "fingerprint": "4cc770999b5b52ed86eb6841364c930ba49a5296ebe244ae8d1d709b616e82a6",
+      "expected": {
+        "source": "builtin_snapshot",
+        "markers": [
+          "builtin_snapshot"
+        ],
+        "coin_id": 5426,
+        "fiat_id": 2781,
+        "first_header_sources": [
+          "spec_column_positional_fallback"
+        ]
+      }
+    },
+    {
+      "case_id": "negative_window_rejected",
+      "conclusions": [
+        {
+          "path": "coin_alias",
+          "function": "resolve_coin",
+          "ok": true,
+          "result": {
+            "symbol": "BTC",
+            "name": "Bitcoin",
+            "id": 1,
+            "aliases": [
+              "bitcoin",
+              "btc",
+              "xbt",
+              "bit coin"
+            ],
+            "source": "coins.aliases"
+          },
+          "basis": [
+            "spec:normalization.order=['coin_alias', 'column_name']",
+            "spec:normalization.order=['coin_alias', 'column_name']"
+          ]
+        },
+        {
+          "path": "fiat_id",
+          "function": "resolve_fiat",
+          "ok": true,
+          "result": {
+            "code": "USD",
+            "id": 2781,
+            "source": "fiat_ids.exact"
+          },
+          "basis": [
+            "spec:fiat_ids.priority=['exact_input_case_insensitive', 'declared_alias_case_insensitive']",
+            "spec:fiat_ids.priority=['exact_input_case_insensitive', 'declared_alias_case_insensitive']"
+          ]
+        },
+        {
+          "path": "request_window",
+          "function": "validate_request_window",
+          "ok": false,
+          "result": {
+            "error": "InvalidSpecWindow"
+          },
+          "basis": [
+            "end_date must be on or after start_date; spec:windows.negative_span_is_valid=False"
+          ]
+        }
+      ],
+      "errors": [],
+      "expected": {
+        "error": "InvalidSpecWindow"
+      },
+      "fingerprint": "ede5f70d203d4b372430e3f9834ce95b126dc111cdd252b7ce06adf1ea0fd423"
+    },
+    {
+      "case_id": "stale_snapshot_live_failure_fallback",
+      "conclusions": [
+        {
+          "path": "coin_alias",
+          "function": "resolve_coin",
+          "ok": true,
+          "result": {
+            "symbol": "BTC",
+            "name": null,
+            "id": 1,
+            "aliases": [],
+            "source": "input.id_number"
+          },
+          "basis": [
+            "spec:request.id_number=bypasses coins.aliases",
+            "spec:normalization.order=['coin_alias', 'column_name']"
+          ]
+        },
+        {
+          "path": "fiat_id",
+          "function": "resolve_fiat",
+          "ok": true,
+          "result": {
+            "code": "USD",
+            "id": 2781,
+            "source": "fiat_ids.exact"
+          },
+          "basis": [
+            "spec:fiat_ids.priority=['exact_input_case_insensitive', 'declared_alias_case_insensitive']",
+            "spec:fiat_ids.priority=['exact_input_case_insensitive', 'declared_alias_case_insensitive']"
+          ]
+        },
+        {
+          "path": "request_window",
+          "function": "validate_request_window",
+          "ok": true,
+          "result": {
+            "start": "24-09-2026",
+            "end": "24-09-2026",
+            "span_days": 0,
+            "time_start": 1790121600,
+            "time_end": 1790208000,
+            "pages": 1
+          },
+          "basis": [
+            "spec:windows.upstream_time_start_boundary='exclusive'; spec:windows.upstream_time_end_boundary='inclusive'",
+            "spec:windows.same_day_span_is_valid=True"
+          ]
+        },
+        {
+          "path": "timestamp_unit",
+          "function": "validate_unix_timestamp",
+          "ok": true,
+          "result": {
+            "seconds": 1790121600
+          },
+          "basis": [
+            "spec:time.timestamp_unit='second'",
+            "spec:time.timestamp_kind='unix_integer'"
+          ]
+        },
+        {
+          "path": "snapshot_path",
+          "function": "parse_quote_table",
+          "ok": true,
+          "result": {
+            "source": "builtin_snapshot",
+            "headers": [
+              "Date",
+              "Open",
+              "High",
+              "Low",
+              "Close",
+              "Volume",
+              "Market Cap",
+              "Time Open",
+              "Time High",
+              "Time Low",
+              "Time Close"
+            ],
+            "rows": [
+              [
+                "24-09-2026",
+                50500.0,
+                51500.0,
+                50000.0,
+                51000.0,
+                1100000.0,
+                910000000000.0,
+                "2026-09-24T00:00:00.000Z",
+                "2026-09-24T12:00:00.000Z",
+                "2026-09-24T06:00:00.000Z",
+                "2026-09-24T23:59:59.999Z"
+              ]
+            ],
+            "markers": [],
+            "field_sources": {
+              "date": [
+                "spec_column_path"
+              ],
+              "open": [
+                "spec_column_path"
+              ],
+              "high": [
+                "spec_column_path"
+              ],
+              "low": [
+                "spec_column_path"
+              ],
+              "close": [
+                "spec_column_path"
+              ],
+              "volume": [
+                "spec_column_path"
+              ],
+              "market_cap": [
+                "spec_column_path"
+              ],
+              "time_open": [
+                "spec_column_path"
+              ],
+              "time_high": [
+                "spec_column_path"
+              ],
+              "time_low": [
+                "spec_column_path"
+              ],
+              "time_close": [
+                "spec_column_path"
+              ]
+            }
+          },
+          "basis": [
+            "spec:windows.row_order='descending_by_quote_date'",
+            "spec:source_policy.snapshot_marker='builtin_snapshot'"
+          ]
+        },
+        {
+          "path": "snapshot_vs_live",
+          "function": "reconcile_sources",
+          "ok": true,
+          "result": {
+            "source": "builtin_snapshot",
+            "markers": [
+              "builtin_snapshot",
+              "snapshot_live_failure_fallback",
+              "snapshot_stale_fallback"
+            ],
+            "conflicts": [],
+            "default_records": [],
+            "row_count": 1,
+            "rows": [
+              [
+                "24-09-2026",
+                50500.0,
+                51500.0,
+                50000.0,
+                51000.0,
+                1100000.0,
+                910000000000.0,
+                "2026-09-24T00:00:00.000Z",
+                "2026-09-24T12:00:00.000Z",
+                "2026-09-24T06:00:00.000Z",
+                "2026-09-24T23:59:59.999Z"
+              ]
+            ]
+          },
+          "basis": [
+            "spec:source_policy.complete_coverage_required=True",
+            "spec:source_policy.snapshot_preferred_max_request_span_days=1",
+            "spec:source_policy.snapshot_fresh_max_age_days=7",
+            "spec:source_policy.conflict_winner='snapshot'"
+          ]
+        },
+        {
+          "path": "column_name",
+          "function": "normalize_column_headers",
+          "ok": true,
+          "result": {
+            "headers": [
+              "Date",
+              "Open",
+              "High",
+              "Low",
+              "Close",
+              "Volume",
+              "Market Cap",
+              "Time Open",
+              "Time High",
+              "Time Low",
+              "Time Close"
+            ],
+            "sources": [
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias"
+            ]
+          },
+          "basis": [
+            "spec:normalization.order=['coin_alias', 'column_name']",
+            "spec:normalization.fallback_order=['mapped_path', 'positional_header', 'reject']"
+          ]
+        },
+        {
+          "path": "crypto_data_compatibility",
+          "function": "validate_crypto_data_signature",
+          "ok": true,
+          "result": {
+            "aliases": [
+              "btc",
+              "bitcoin"
+            ],
+            "legacy_positional_fields": 10
+          },
+          "basis": [
+            "spec:compatibility.crypto_data_legacy_signature='coin_code,start_date,end_date,all_time,order_ascending,fiat,coin_name,id_number,headers,rows'",
+            "spec:compatibility.new_kw_only_fields=['aliases']"
+          ]
+        }
+      ],
+      "errors": [],
+      "fingerprint": "b62f589e19c38f23adbf0e48cf57ce77441e14163d8941c65d4ee7aa70586b59",
+      "expected": {
+        "source": "builtin_snapshot",
+        "markers": [
+          "builtin_snapshot",
+          "snapshot_live_failure_fallback",
+          "snapshot_stale_fallback"
+        ],
+        "coin_id": 1,
+        "fiat_id": 2781,
+        "conflict_count": 0,
+        "row_count": 1
+      }
+    },
+    {
+      "case_id": "future_snapshot_never_fallback",
+      "conclusions": [
+        {
+          "path": "coin_alias",
+          "function": "resolve_coin",
+          "ok": true,
+          "result": {
+            "symbol": "BTC",
+            "name": null,
+            "id": 1,
+            "aliases": [],
+            "source": "input.id_number"
+          },
+          "basis": [
+            "spec:request.id_number=bypasses coins.aliases",
+            "spec:normalization.order=['coin_alias', 'column_name']"
+          ]
+        },
+        {
+          "path": "fiat_id",
+          "function": "resolve_fiat",
+          "ok": true,
+          "result": {
+            "code": "USD",
+            "id": 2781,
+            "source": "fiat_ids.exact"
+          },
+          "basis": [
+            "spec:fiat_ids.priority=['exact_input_case_insensitive', 'declared_alias_case_insensitive']",
+            "spec:fiat_ids.priority=['exact_input_case_insensitive', 'declared_alias_case_insensitive']"
+          ]
+        },
+        {
+          "path": "request_window",
+          "function": "validate_request_window",
+          "ok": true,
+          "result": {
+            "start": "24-09-2026",
+            "end": "24-09-2026",
+            "span_days": 0,
+            "time_start": 1790121600,
+            "time_end": 1790208000,
+            "pages": 1
+          },
+          "basis": [
+            "spec:windows.upstream_time_start_boundary='exclusive'; spec:windows.upstream_time_end_boundary='inclusive'",
+            "spec:windows.same_day_span_is_valid=True"
+          ]
+        },
+        {
+          "path": "timestamp_unit",
+          "function": "validate_unix_timestamp",
+          "ok": true,
+          "result": {
+            "seconds": 1790121600
+          },
+          "basis": [
+            "spec:time.timestamp_unit='second'",
+            "spec:time.timestamp_kind='unix_integer'"
+          ]
+        },
+        {
+          "path": "snapshot_path",
+          "function": "parse_quote_table",
+          "ok": true,
+          "result": {
+            "source": "builtin_snapshot",
+            "headers": [
+              "Date",
+              "Open",
+              "High",
+              "Low",
+              "Close",
+              "Volume",
+              "Market Cap",
+              "Time Open",
+              "Time High",
+              "Time Low",
+              "Time Close"
+            ],
+            "rows": [
+              [
+                "24-09-2026",
+                50500.0,
+                51500.0,
+                50000.0,
+                51000.0,
+                1100000.0,
+                910000000000.0,
+                "2026-09-24T00:00:00.000Z",
+                "2026-09-24T12:00:00.000Z",
+                "2026-09-24T06:00:00.000Z",
+                "2026-09-24T23:59:59.999Z"
+              ]
+            ],
+            "markers": [],
+            "field_sources": {
+              "date": [
+                "spec_column_path"
+              ],
+              "open": [
+                "spec_column_path"
+              ],
+              "high": [
+                "spec_column_path"
+              ],
+              "low": [
+                "spec_column_path"
+              ],
+              "close": [
+                "spec_column_path"
+              ],
+              "volume": [
+                "spec_column_path"
+              ],
+              "market_cap": [
+                "spec_column_path"
+              ],
+              "time_open": [
+                "spec_column_path"
+              ],
+              "time_high": [
+                "spec_column_path"
+              ],
+              "time_low": [
+                "spec_column_path"
+              ],
+              "time_close": [
+                "spec_column_path"
+              ]
+            }
+          },
+          "basis": [
+            "spec:windows.row_order='descending_by_quote_date'",
+            "spec:source_policy.snapshot_marker='builtin_snapshot'"
+          ]
+        },
+        {
+          "path": "snapshot_vs_live",
+          "function": "reconcile_sources",
+          "ok": false,
+          "result": {
+            "error": "InvalidSpecResponse",
+            "message": "no live response or builtin snapshot is available"
+          },
+          "basis": [
+            "spec:source_policy.complete_coverage_required=True"
+          ]
+        },
+        {
+          "path": "column_name",
+          "function": "normalize_column_headers",
+          "ok": true,
+          "result": {
+            "headers": [
+              "Date",
+              "Open",
+              "High",
+              "Low",
+              "Close",
+              "Volume",
+              "Market Cap",
+              "Time Open",
+              "Time High",
+              "Time Low",
+              "Time Close"
+            ],
+            "sources": [
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias",
+              "spec_column_alias"
+            ]
+          },
+          "basis": [
+            "spec:normalization.order=['coin_alias', 'column_name']",
+            "spec:normalization.fallback_order=['mapped_path', 'positional_header', 'reject']"
+          ]
+        },
+        {
+          "path": "crypto_data_compatibility",
+          "function": "validate_crypto_data_signature",
+          "ok": true,
+          "result": {
+            "aliases": [
+              "btc",
+              "bitcoin"
+            ],
+            "legacy_positional_fields": 10
+          },
+          "basis": [
+            "spec:compatibility.crypto_data_legacy_signature='coin_code,start_date,end_date,all_time,order_ascending,fiat,coin_name,id_number,headers,rows'",
+            "spec:compatibility.new_kw_only_fields=['aliases']"
+          ]
+        }
+      ],
+      "errors": [],
+      "fingerprint": "3a90ad44774a21d861139db0637c24697b76252cdb7a005abe1a61d03f346352",
+      "expected": {
+        "error": "InvalidSpecResponse"
+      }
+    }
+  ]
+}

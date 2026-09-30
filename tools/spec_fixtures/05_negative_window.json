@@ -1,0 +1,9 @@
+{
+  "case_id": "negative_window_rejected",
+  "request": {"coin_code": "btc", "coin_name": null, "id_number": null, "fiat": "usd", "start": "25-09-2026", "end": "24-09-2026"},
+  "now": "2026-09-24T00:00:00.000Z",
+  "input_headers": ["Date", "Open", "High", "Low", "Close", "Volume", "Market Cap", "Time Open", "Time High", "Time Low", "Time Close"],
+  "snapshot": null,
+  "live": null,
+  "expected": {"error": "InvalidSpecWindow"}
+}

@@ -6,189 +6,27 @@ from __future__ import print_function
 import json
 import os
 import sys
-import datetime
+
 from requests import get
 
-
-_CMC_DATA_API = "https://api.coinmarketcap.com/data-api/v3"
-
-with open(os.path.join(os.path.dirname(__file__), "fiat_ids.json")) as _f:
-    _FIAT_IDS = json.load(_f)
-
-_SUPPORTED_FIATS = ", ".join(sorted(_FIAT_IDS))
-
-_HEADERS = {"User-Agent": "Mozilla/5.0"}
-
-
-def get_url_data(url):
-    """
-    This method downloads the data of the web page.
-    :param url: 'url' of the web page to download
-    :return: response object of get request of the 'url'
-    """
-
-    try:
-        response = get(url, headers=_HEADERS)
-        return response
-    except Exception as e:
-        print("Error message (get_url_data) :", e)
-        raise e
-
-
-def get_coin_id(coin_code, coin_name):
-    """
-    This method fetches the id of currency from the given code
-    :param coin_code: coin code of a cryptocurrency e.g. btc
-    :param coin_name: coin name in case of many coins with same code e.g. sol -> solana, solcoin
-    :return: numeric coin id for the cryptocurrency on coinmarketcap.com
-    """
-
-    api_url = (
-        "{}/cryptocurrency/listing?start=1&limit=5000"
-        "&sortBy=market_cap&sortType=desc&convert=USD"
-        "&cryptoType=all&tagType=all&audited=false"
-    ).format(_CMC_DATA_API)
-
-    try:
-        json_data = get_url_data(api_url).json()
-        error_code = json_data["status"]["error_code"]
-        if str(error_code) == "0":
-            coins = json_data["data"]["cryptoCurrencyList"]
-            matches = [
-                c
-                for c in coins
-                if c["symbol"].upper() == coin_code.upper()
-                and (coin_name is None or c["name"].lower() == coin_name.lower())
-            ]
-            if matches:
-                return matches[0]["id"]
-            raise InvalidCoinCode(
-                "'{}' coin code is unavailable on coinmarketcap.com".format(coin_code)
-            )
-        if str(error_code) == "400":
-            raise InvalidCoinCode(
-                "'{}' coin code is unavailable on coinmarketcap.com".format(coin_code)
-            )
-        raise Exception(json_data["status"]["error_message"])
-    except Exception as e:
-        print("Error fetching coin id data for coin code {}".format(coin_code))
-        print("Error message:", e)
-        raise e
-
-
-def download_coin_data(
-    coin_code, start_date, end_date, fiat, coin_name, id_number=None
-):
-    """
-    Download price history for the specified cryptocurrency and time range from CoinMarketCap.
-
-    :param coin_code: coin code of a cryptocurrency e.g. btc
-    :param start_date: date since when to scrape data (in the format of dd-mm-yyyy)
-    :param end_date: date to which scrape the data (in the format of dd-mm-yyyy).
-        Defaults to today. CMC only returns completed daily candles, so the latest
-        candle returned will always be the last completed UTC day regardless of this value.
-    :param fiat: fiat code eg. USD, EUR
-    :param coin_name: coin name in case of many coins with same code e.g. sol -> solana, solcoin
-    :param id_number: id number for the token on coinmarketcap. Will override coin_code and coin_name when provided.
-
-    :return: json data with historical OHLCV data for the cryptocurrency
-    """
-
-    if start_date is None:
-        # default start date on coinmarketcap.com
-        start_date = "28-4-2013"
-
-    if end_date is None:
-        end_date = datetime.date.today().strftime("%d-%m-%Y")
-
-    coin_id = id_number if id_number else get_coin_id(coin_code, coin_name)
-    convert_id = _FIAT_IDS.get(fiat.upper())
-    if convert_id is None:
-        raise ValueError(f"Unknown fiat '{fiat}'. Supported: {_SUPPORTED_FIATS}.")
-
-    start_dt = datetime.datetime.strptime(start_date, "%d-%m-%Y").replace(
-        tzinfo=datetime.timezone.utc
-    )
-    end_dt = datetime.datetime.strptime(end_date, "%d-%m-%Y").replace(
-        tzinfo=datetime.timezone.utc
-    )
-
-    try:
-        # CMC caps responses at ~365 entries per request; split into yearly chunks
-        # so long/all-time ranges always return daily granularity.
-        # timeStart is exclusive (first returned day = timeStart + 1), so each
-        # chunk's timeStart equals the previous chunk's timeEnd — no overlap, no gap.
-        all_quotes = []
-        result_json = None
-        chunk_start = start_dt - datetime.timedelta(days=1)
-
-        while chunk_start < end_dt:
-            chunk_end = min(chunk_start + datetime.timedelta(days=365), end_dt)
-            api_url = (
-                "{}/cryptocurrency/historical"
-                "?id={}&convertId={}&timeStart={}&timeEnd={}"
-            ).format(
-                _CMC_DATA_API,
-                coin_id,
-                convert_id,
-                int(chunk_start.timestamp()),
-                int(chunk_end.timestamp()),
-            )
-            json_data = get_url_data(api_url).json()
-            status = json_data.get("status", {})
-            error_code = status.get("error_code")
-            if error_code and str(error_code) != "0":
-                raise Exception(status.get("error_message", "Unknown error"))
-            if result_json is None:
-                result_json = json_data
-            all_quotes.extend(json_data["data"]["quotes"])
-            chunk_start = chunk_end + datetime.timedelta(days=1)
-
-        result_json["data"]["quotes"] = all_quotes
-
-        if id_number:
-            show_coin_info = False
-            if coin_code and coin_code.upper() != result_json["data"]["symbol"].upper():
-                print(
-                    f"INFO: Using 'id_number'! The 'coin_code' ({coin_code}) provided "
-                    + "is different from the symbol returned."
-                )
-                show_coin_info = True
-            if coin_name and coin_name.lower() != result_json["data"]["name"].lower():
-                print(
-                    f"INFO: Using 'id_number'! The 'coin_name' ({coin_name}) provided "
-                    + "is different from the name returned."
-                )
-                show_coin_info = True
-            if show_coin_info:
-                print(
-                    f"""The returned data belongs to coin "{result_json['data']['name']}", """
-                    + f"""with symbol "{result_json['data']['symbol']}" """
-                )
-        return result_json
-    except Exception as e:
-        print(
-            "Error fetching price data for {} for interval '{}' and '{}'".format(
-                f"(id {id_number})" if id_number else coin_code,
-                start_date,
-                end_date,
-            )
-        )
-        print("Error message (download_data) :", e)
-        raise e
-
-
-def _replace(s, bad_chars):
-    if sys.version_info > (3, 0):
-        # For Python 3
-        without_bad_chars = str.maketrans("", "", bad_chars)
-        return s.translate(without_bad_chars)
-    else:
-        # For Python 2
-        import string
-
-        identity = string.maketrans("", "")
-        return s.translate(identity, bad_chars)
+from .spec import (
+    BUILTIN_SNAPSHOT_PATH,
+    AmbiguousCoinIdentity,
+    InvalidSpecResponse,
+    InvalidSpecWindow,
+    get_path,
+    get_rule,
+    format_spec_date,
+    reconcile_sources,
+    resolve_coin,
+    resolve_fiat,
+    rule_basis,
+    supported_fiat_codes,
+    to_unix_seconds,
+    utc_today_midnight,
+    validate_request_window,
+    iter_upstream_windows,
+)
 
 
 class InvalidParameters(ValueError):
@@ -197,3 +35,204 @@ class InvalidParameters(ValueError):
 
 class InvalidCoinCode(NotImplementedError):
     """This coin code is unavailable on 'coinmarketcap.com'"""
+
+
+def get_url_data(url):
+    """Download a URL using request headers declared by the executable spec."""
+    try:
+        return get(url, headers=get_rule("request.http_headers"))
+    except Exception as exc:
+        print("Error message (get_url_data) :", exc)
+        raise
+
+
+def _api_url(path):
+    return get_rule("request.api_base_url") + get_rule(path)
+
+
+def _status_value(response, key):
+    return get_path(response, get_rule("request.status_" + key + "_path"))
+
+
+def _listing_coins(response):
+    coins = get_path(response, tuple(get_rule("request.listing_response_path").split(".")))
+    if not isinstance(coins, list):
+        raise InvalidSpecResponse(rule_basis("request.listing_response_path"))
+    return coins
+
+
+def get_coin_id(coin_code, coin_name):
+    """Resolve a coin id from the canonical spec, falling back to a live listing."""
+    identity = resolve_coin(coin_code=coin_code, coin_name=coin_name)
+    if identity.coin_id is not None:
+        return identity.coin_id
+
+    fiat = resolve_fiat(get_rule("fiat_ids.default_listing_convert_code"))
+    query = get_rule("request.listing_query").format(convert=fiat.code)
+    api_url = _api_url("request.listing_path") + "?" + query
+    json_data = get_url_data(api_url).json()
+    error_code = _status_value(json_data, "error_code")
+    if error_code not in get_rule("request.success_error_codes"):
+        if error_code in get_rule("request.not_found_error_codes"):
+            raise InvalidCoinCode(
+                "'{}' coin code is unavailable on coinmarketcap.com".format(coin_code)
+            )
+        raise Exception(_status_value(json_data, "error_message") or "Unknown error")
+
+    symbol_field = get_rule("request.coin_symbol_field")
+    name_field = get_rule("request.coin_name_field")
+    id_field = get_rule("request.coin_id_field")
+    code_key = str(coin_code).strip().lower()
+    name_key = str(coin_name).strip().lower() if coin_name is not None else None
+    matches = [
+        coin for coin in _listing_coins(json_data)
+        if str(coin.get(symbol_field, "")).lower() == code_key
+        and (name_key is None or str(coin.get(name_field, "")).lower() == name_key)
+    ]
+    if matches:
+        return matches[0][id_field]
+    raise InvalidCoinCode(
+        "'{}' coin code is unavailable on coinmarketcap.com".format(coin_code)
+    )
+
+
+def _resolve_coin(coin_code, coin_name, id_number):
+    if id_number:
+        return resolve_coin(coin_code=coin_code, coin_name=coin_name, id_number=id_number)
+    identity = resolve_coin(coin_code=coin_code, coin_name=coin_name)
+    if identity.coin_id is None:
+        coin_id = get_coin_id(coin_code, coin_name)
+        return resolve_coin(coin_code=coin_code, coin_name=coin_name, id_number=coin_id)
+    return identity
+
+
+def _load_builtin_snapshot():
+    if not os.path.exists(BUILTIN_SNAPSHOT_PATH):
+        return None
+    with open(BUILTIN_SNAPSHOT_PATH, encoding="utf-8") as snapshot_file:
+        return json.load(snapshot_file)
+
+
+def _request_historical_page(coin_id, convert_id, chunk_start, chunk_end):
+    query = get_rule("request.historical_query").format(
+        id=coin_id,
+        convert_id=convert_id,
+        time_start=to_unix_seconds(chunk_start),
+        time_end=to_unix_seconds(chunk_end),
+    )
+    api_url = _api_url("request.historical_path") + "?" + query
+    json_data = get_url_data(api_url).json()
+    error_code = _status_value(json_data, "error_code")
+    if error_code not in get_rule("request.success_error_codes"):
+        raise Exception(_status_value(json_data, "error_message") or "Unknown error")
+    return json_data
+
+
+def _download_live(identity, fiat, window):
+    result_json = None
+    all_quotes = []
+    for chunk_start, chunk_end in iter_upstream_windows(window):
+        page = _request_historical_page(
+            identity.coin_id, fiat.convert_id, chunk_start, chunk_end
+        )
+        if result_json is None:
+            result_json = page
+        quotes = get_path(page, tuple(get_rule("windows.upstream_quotes_path").split(".")))
+        if not isinstance(quotes, list):
+            raise InvalidSpecResponse(rule_basis("windows.upstream_quotes_path"))
+        all_quotes.extend(quotes)
+    if result_json is None:
+        raise InvalidSpecResponse("historical request produced no pages")
+    result_json["data"]["quotes"] = all_quotes
+    return result_json
+
+
+def _report_id_mismatch(identity, result_json):
+    if identity.source != "input.id_number":
+        return
+    data = result_json.get("data", {})
+    show_coin_info = False
+    if identity.canonical_symbol and identity.canonical_symbol.upper() != data.get("symbol", "").upper():
+        print("INFO: Using 'id_number'! The 'coin_code' ({}) provided is different from the symbol returned.".format(identity.canonical_symbol))
+        show_coin_info = True
+    if identity.canonical_name and identity.canonical_name.lower() != data.get("name", "").lower():
+        print("INFO: Using 'id_number'! The 'coin_name' ({}) provided is different from the name returned.".format(identity.canonical_name))
+        show_coin_info = True
+    if show_coin_info:
+        print('The returned data belongs to coin "{name}", with symbol "{symbol}"'.format(**data))
+
+
+def download_coin_data(coin_code, start_date, end_date, fiat, coin_name, id_number=None):
+    """Download price history using every mapping and boundary from spec.py."""
+    original_start = start_date
+    original_end = end_date
+    if start_date is None:
+        start_date = get_rule("time.default_all_time_start")
+    if end_date is None:
+        end_date = format_spec_date(utc_today_midnight())
+
+    try:
+        window = validate_request_window(start_date, end_date)
+        fiat_identity = resolve_fiat(fiat)
+        identity = _resolve_coin(coin_code, coin_name, id_number)
+    except (InvalidSpecWindow, AmbiguousCoinIdentity, ValueError):
+        raise
+
+    snapshot = _load_builtin_snapshot()
+    snapshot_data = snapshot.get("data", {}) if snapshot else {}
+    if snapshot is not None and snapshot_data.get("id") != identity.coin_id:
+        snapshot = None
+    try:
+        live_json = _download_live(identity, fiat_identity, window)
+        decision = reconcile_sources(snapshot, live_json, window, utc_today_midnight())
+    except Exception as live_error:
+        if snapshot is None:
+            print("Error fetching price data for {}".format(id_number or coin_code))
+            print("Error message (download_data) :", live_error)
+            raise
+        try:
+            decision = reconcile_sources(
+                snapshot, None, window, utc_today_midnight(), live_failure=True
+            )
+        except Exception:
+            print("Error fetching price data for {}".format(id_number or coin_code))
+            print("Error message (download_data) :", live_error)
+            raise
+
+    result_json = dict(decision.selected_response)
+    result_json.setdefault("status", {"error_code": 0, "error_message": None})
+    result_json["_cryptocmd"] = {
+        "source": decision.selected_source,
+        "markers": list(decision.markers),
+        "conflicts": list(decision.conflicts),
+        "default_records": list(decision.default_records),
+        "basis": list(decision.basis),
+        "aliases": list(identity.aliases),
+        "coin_source": identity.source,
+        "coin_basis": identity.basis,
+        "fiat_source": fiat_identity.source,
+        "fiat_basis": fiat_identity.basis,
+        "window_basis": window.basis,
+        "requested_start": original_start,
+        "requested_end": original_end,
+    }
+    _report_id_mismatch(identity, result_json)
+    return result_json
+
+
+def _replace(s, bad_chars):
+    if sys.version_info > (3, 0):
+        return s.translate(str.maketrans("", "", bad_chars))
+    import string
+
+    return s.translate(string.maketrans("", ""), bad_chars)
+
+
+__all__ = [
+    "download_coin_data",
+    "get_coin_id",
+    "get_url_data",
+    "supported_fiat_codes",
+    "InvalidParameters",
+    "InvalidCoinCode",
+]

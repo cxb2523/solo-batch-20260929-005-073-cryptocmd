@@ -1,0 +1,32 @@
+{
+  "cases": [
+    {
+      "case_id": "snapshot_preferred_conflict",
+      "fingerprint": "c76d1b14b41312704d85246b884c3fa4e089208bb8e6a75089f2e0f6325a640e"
+    },
+    {
+      "case_id": "snapshot_defaulted_fields",
+      "fingerprint": "ee0510abe060414625d86cd7a48b0ea969ef89d2d1cb916cdd20444c7b17de46"
+    },
+    {
+      "case_id": "live_for_wide_window",
+      "fingerprint": "04d5428387200a7297985c62b4be514130a9b72ac79375acbeb7b4d715c8822f"
+    },
+    {
+      "case_id": "positional_header_fallback",
+      "fingerprint": "4cc770999b5b52ed86eb6841364c930ba49a5296ebe244ae8d1d709b616e82a6"
+    },
+    {
+      "case_id": "negative_window_rejected",
+      "fingerprint": "ede5f70d203d4b372430e3f9834ce95b126dc111cdd252b7ce06adf1ea0fd423"
+    },
+    {
+      "case_id": "stale_snapshot_live_failure_fallback",
+      "fingerprint": "b62f589e19c38f23adbf0e48cf57ce77441e14163d8941c65d4ee7aa70586b59"
+    },
+    {
+      "case_id": "future_snapshot_never_fallback",
+      "fingerprint": "3a90ad44774a21d861139db0637c24697b76252cdb7a005abe1a61d03f346352"
+    }
+  ]
+}

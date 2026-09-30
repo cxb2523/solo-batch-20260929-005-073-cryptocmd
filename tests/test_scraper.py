@@ -7,6 +7,7 @@ Integration tests hit the live CoinMarketCap API and are marked with
 since the project already makes live network calls in CI.
 """
 
+import copy
 import datetime
 from unittest.mock import MagicMock, patch
 
@@ -328,3 +329,103 @@ class TestIntegration:
             "Time Low",
             "Time Close",
         ]
+
+
+# ---------------------------------------------------------------------------
+# Executable specification behaviour
+# ---------------------------------------------------------------------------
+
+
+import json
+from pathlib import Path
+from pathlib import Path
+
+from cryptocmd.core import CryptoData
+from cryptocmd.spec import (
+    InvalidSpecTimestamp,
+    InvalidSpecWindow,
+    AmbiguousCoinIdentity,
+    resolve_coin,
+    resolve_fiat,
+    validate_request_window,
+    validate_unix_timestamp,
+)
+from cryptocmd.utils import download_coin_data
+
+
+SNAPSHOT_PATH = Path(__file__).resolve().parents[1] / "cryptocmd" / "builtin_snapshot.json"
+
+
+def _load_builtin_snapshot():
+    with SNAPSHOT_PATH.open(encoding="utf-8") as snapshot_file:
+        return json.load(snapshot_file)
+
+
+def _mock_response(response_dict):
+    mock_response = MagicMock()
+    mock_response.json.return_value = response_dict
+    return mock_response
+
+
+class TestExecutableSpecification:
+    def test_sol_symbol_requires_disambiguating_alias(self):
+        with pytest.raises(AmbiguousCoinIdentity):
+            resolve_coin("sol")
+        coin = resolve_coin("sol", "solcoin")
+        assert (coin.coin_id, coin.canonical_name) == (15465, "Solcoin")
+
+    def test_fiat_alias_priority_is_declared_in_spec(self):
+        assert resolve_fiat("us$").code == "USD"
+        assert resolve_fiat("euro").convert_id == 2790
+
+    def test_zero_span_is_valid_and_negative_span_is_rejected(self):
+        same_day = validate_request_window("24-09-2026", "24-09-2026")
+        assert same_day.span_days == 0
+        with pytest.raises(InvalidSpecWindow):
+            validate_request_window("25-09-2026", "24-09-2026")
+
+    def test_millisecond_timestamp_is_rejected(self):
+        with pytest.raises(InvalidSpecTimestamp):
+            validate_unix_timestamp(1_790_000_000_000)
+
+    def test_crypto_data_keeps_ten_positional_fields_and_keyword_aliases(self):
+        data = CryptoData(
+            "BTC", "01-01-2024", "02-01-2024", False, False, "USD",
+            "Bitcoin", 1, ["Date"], [["01-01-2024"]], aliases=("btc", "bitcoin"),
+        )
+        assert data.coin_code == "BTC"
+        assert data.id_number == 1
+        assert data.aliases == ("btc", "bitcoin")
+
+    def test_snapshot_wins_conflict_and_is_marked_degraded(self):
+        snapshot = _load_builtin_snapshot()
+        live = {
+            "status": {"error_code": 0, "error_message": None},
+            "data": copy.deepcopy(snapshot["data"]),
+        }
+        live["data"]["quotes"][1]["quote"]["open"] = 999999.0
+        with patch("cryptocmd.utils._load_builtin_snapshot", return_value=snapshot), patch(
+            "cryptocmd.utils.get_url_data", return_value=_mock_response(live)
+        ):
+            result = download_coin_data(
+                "BTC", "23-09-2026", "24-09-2026", "USD", None, 1
+            )
+        assert result["_cryptocmd"]["source"] == "builtin_snapshot"
+        assert "snapshot_conflict" in result["_cryptocmd"]["markers"]
+        assert result["data"]["quotes"][1]["quote"]["open"] == 50500.0
+
+    def test_snapshot_defaults_are_marked_separately_from_live_values(self):
+        snapshot = _load_builtin_snapshot()
+        del snapshot["data"]["quotes"][0]["quote"]["marketCap"]
+        del snapshot["data"]["quotes"][0]["timeLow"]
+        with patch("cryptocmd.utils._load_builtin_snapshot", return_value=snapshot), patch(
+            "cryptocmd.utils.get_url_data", side_effect=AssertionError("snapshot should avoid live request")
+        ):
+            scraper = CmcScraper("BTC", "23-09-2026", "23-09-2026", id_number=1)
+            headers, rows = scraper.get_data()
+        assert headers[6] == "Market Cap"
+        assert rows[0][6] is None
+        assert "snapshot_defaulted_fields" in scraper.source_decision["markers"]
+        assert scraper.source_decision["default_records"]
+
+
