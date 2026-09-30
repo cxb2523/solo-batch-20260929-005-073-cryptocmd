@@ -45,6 +45,7 @@ dev = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["cryptocmd"]
+artifacts = ["cryptocmd/*.json"]
 
 [tool.hatch.build.targets.sdist]
 include = [

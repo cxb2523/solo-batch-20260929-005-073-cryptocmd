@@ -111,3 +111,6 @@ ENV/
 
 # Generated CSV output from examples / tests
 *.csv
+
+# Generated spec-replay artifacts (the baseline JSON is committed)
+tools/replay_out/

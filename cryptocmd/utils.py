@@ -3,46 +3,51 @@
 
 from __future__ import print_function
 
-import json
-import os
-import sys
 import datetime
+
 from requests import get
 
+from . import spec
+
+# Re-export the specification exceptions so the historical public API
+# (`from cryptocmd.utils import InvalidParameters, InvalidCoinCode`) keeps
+# working while their actual definition lives in the spec.
+InvalidParameters = spec.InvalidParameters
+InvalidCoinCode = spec.InvalidCoinCode
 
 _CMC_DATA_API = "https://api.coinmarketcap.com/data-api/v3"
-
-with open(os.path.join(os.path.dirname(__file__), "fiat_ids.json")) as _f:
-    _FIAT_IDS = json.load(_f)
-
-_SUPPORTED_FIATS = ", ".join(sorted(_FIAT_IDS))
-
 _HEADERS = {"User-Agent": "Mozilla/5.0"}
 
 
 def get_url_data(url):
-    """
-    This method downloads the data of the web page.
-    :param url: 'url' of the web page to download
-    :return: response object of get request of the 'url'
-    """
-
+    """Download a URL and return the response object."""
     try:
         response = get(url, headers=_HEADERS)
         return response
-    except Exception as e:
-        print("Error message (get_url_data) :", e)
-        raise e
+    except Exception as exc:  # pragma: no cover - network failure
+        print("Error message (get_url_data) :", exc)
+        raise
 
 
-def get_coin_id(coin_code, coin_name):
+def _listing_matches(coin, identity):
+    """A listing matches when its symbol/name agree with the SPEC identity.
+
+    Basis SPEC-COIN-01: compare against the canonical code/name, which already
+    incorporates alias normalization, so an alias like XBT matches a BTC listing.
     """
-    This method fetches the id of currency from the given code
-    :param coin_code: coin code of a cryptocurrency e.g. btc
-    :param coin_name: coin name in case of many coins with same code e.g. sol -> solana, solcoin
-    :return: numeric coin id for the cryptocurrency on coinmarketcap.com
-    """
+    symbol_ok = identity["canonical_code"] is not None and str(
+        coin.get("symbol", "")
+    ).upper() == identity["canonical_code"].upper()
+    if identity["requested_name"] is None:
+        return symbol_ok
+    wanted = spec._key(identity["requested_name"])
+    name_ok = spec._key(coin.get("name", "")) == wanted
+    return symbol_ok and name_ok
 
+
+def get_coin_id(coin_code, coin_name, transport=get_url_data):
+    """Resolve a coin code/name to its numeric CMC id (SPEC-COIN-01)."""
+    identity = spec.normalize_coin(coin_code, coin_name)
     api_url = (
         "{}/cryptocurrency/listing?start=1&limit=5000"
         "&sortBy=market_cap&sortType=desc&convert=USD"
@@ -50,150 +55,273 @@ def get_coin_id(coin_code, coin_name):
     ).format(_CMC_DATA_API)
 
     try:
-        json_data = get_url_data(api_url).json()
+        json_data = transport(api_url).json()
         error_code = json_data["status"]["error_code"]
         if str(error_code) == "0":
             coins = json_data["data"]["cryptoCurrencyList"]
-            matches = [
-                c
-                for c in coins
-                if c["symbol"].upper() == coin_code.upper()
-                and (coin_name is None or c["name"].lower() == coin_name.lower())
-            ]
+            matches = [c for c in coins if _listing_matches(c, identity)]
             if matches:
                 return matches[0]["id"]
             raise InvalidCoinCode(
-                "'{}' coin code is unavailable on coinmarketcap.com".format(coin_code)
+                "'{}' coin code is unavailable on coinmarketcap.com".format(
+                    coin_code
+                )
             )
         if str(error_code) == "400":
             raise InvalidCoinCode(
-                "'{}' coin code is unavailable on coinmarketcap.com".format(coin_code)
+                "'{}' coin code is unavailable on coinmarketcap.com".format(
+                    coin_code
+                )
             )
         raise Exception(json_data["status"]["error_message"])
-    except Exception as e:
-        print("Error fetching coin id data for coin code {}".format(coin_code))
-        print("Error message:", e)
-        raise e
+    except Exception as exc:
+        print(
+            "Error fetching coin id data for coin code {}".format(coin_code)
+        )
+        print("Error message:", exc)
+        raise
+
+
+def _now():
+    return datetime.datetime.now(tz=datetime.timezone.utc)
+
+
+def _build_result_envelope(identity, quotes, coin_id):
+    return {
+        "status": {"error_code": 0, "error_message": None},
+        "data": {
+            "id": coin_id,
+            "symbol": identity["canonical_code"],
+            "name": identity["canonical_name"],
+            "quotes": quotes,
+            "__cell_sources__": [],
+        },
+    }
+
+
+def _read_snapshot(identity, window, now, bundle=None):
+    """Read quotes from the built-in snapshot for the closed request range.
+
+    Applies SPEC-SNAP-01 default-fill/drop via spec.parse_quote_row and returns
+    raw-shaped quotes (with defaults materialised) plus a provenance report.
+    """
+    bundle = spec.load_snapshot_bundle() if bundle is None else bundle
+    if bundle is None:
+        return None
+    entry = bundle.get("coins", {}).get(identity["canonical_code"])
+    if entry is None:
+        return None
+
+    age_days = spec.snapshot_age_days(bundle, now=now)
+    covered = spec.snapshot_covers(bundle, identity["canonical_code"], window)
+
+    kept_quotes = []
+    kept_sources = []
+    fills = 0
+    dropped = 0
+    wanted_days = set()
+    cursor = window["start_dt"].date()
+    while cursor <= window["end_dt"].date():
+        wanted_days.add(cursor)
+        cursor += datetime.timedelta(days=1)
+
+    for quote in entry.get("quotes", []):
+        raw = quote.get(spec.MANDATORY_KEY)
+        if raw is None:
+            dropped += 1
+            continue
+        day = datetime.datetime.strptime(
+            raw, spec.API_TIME_FORMAT
+        ).date()
+        if day not in wanted_days:
+            continue
+        values, cell_sources, is_dropped = spec.parse_quote_row(
+            quote, "snapshot"
+        )
+        if is_dropped:
+            dropped += 1
+            continue
+        fills += sum(1 for tag in cell_sources if tag == "snapshot.default")
+        kept_quotes.append(_materialize_snapshot_quote(quote, values))
+        kept_sources.append(cell_sources)
+
+    return {
+        "quotes": kept_quotes,
+        "cell_sources": kept_sources,
+        "age_days": age_days,
+        "covered": covered,
+        "fills": fills,
+        "dropped": dropped,
+        "generated_at": bundle.get("generated_at"),
+    }
+
+
+def _materialize_snapshot_quote(original, values):
+    """Rebuild a quote dict from parsed ordered values (Date is derived)."""
+    header_to_value = dict(zip(spec.HEADERS, values))
+    return {
+        "timeOpen": original.get("timeOpen"),
+        "timeHigh": header_to_value.get("Time High"),
+        "timeLow": header_to_value.get("Time Low"),
+        "timeClose": header_to_value.get("Time Close"),
+        "quote": {
+            "open": header_to_value.get("Open"),
+            "high": header_to_value.get("High"),
+            "low": header_to_value.get("Low"),
+            "close": header_to_value.get("Close"),
+            "volume": header_to_value.get("Volume"),
+            "marketCap": header_to_value.get("Market Cap"),
+        },
+    }
 
 
 def download_coin_data(
-    coin_code, start_date, end_date, fiat, coin_name, id_number=None
+    coin_code,
+    start_date,
+    end_date,
+    fiat,
+    coin_name,
+    id_number=None,
+    transport=None,
+    now=None,
+    snapshot_bundle=None,
+    force_source=None,
 ):
-    """
-    Download price history for the specified cryptocurrency and time range from CoinMarketCap.
+    """Download price history, evaluating every rule against ``spec``.
 
-    :param coin_code: coin code of a cryptocurrency e.g. btc
-    :param start_date: date since when to scrape data (in the format of dd-mm-yyyy)
-    :param end_date: date to which scrape the data (in the format of dd-mm-yyyy).
-        Defaults to today. CMC only returns completed daily candles, so the latest
-        candle returned will always be the last completed UTC day regardless of this value.
-    :param fiat: fiat code eg. USD, EUR
-    :param coin_name: coin name in case of many coins with same code e.g. sol -> solana, solcoin
-    :param id_number: id number for the token on coinmarketcap. Will override coin_code and coin_name when provided.
+    New keyword-only seams (default behaviour is unchanged):
+      transport       - callable(url)->response with .json() (replay injection)
+      now             - injectable current UTC datetime (deterministic replay)
+      snapshot_bundle - override the built-in snapshot bundle
+      force_source    - "live"|"snapshot" to bypass SPEC-SRC-01 (audit only)
 
-    :return: json data with historical OHLCV data for the cryptocurrency
+    Returns the JSON-shaped envelope with an extra ``__provenance__`` key
+    describing the source decision and any snapshot fills/drops.
     """
+    transport = transport or get_url_data
+    now = now or _now()
 
     if start_date is None:
-        # default start date on coinmarketcap.com
-        start_date = "28-4-2013"
-
+        start_date = spec.DEFAULT_START_DATE
     if end_date is None:
-        end_date = datetime.date.today().strftime("%d-%m-%Y")
+        end_date = spec.default_end_date(today=now.date())
 
-    coin_id = id_number if id_number else get_coin_id(coin_code, coin_name)
-    convert_id = _FIAT_IDS.get(fiat.upper())
-    if convert_id is None:
-        raise ValueError(f"Unknown fiat '{fiat}'. Supported: {_SUPPORTED_FIATS}.")
+    # SPEC-WIN-01: build/validate the closed range -> half-open wire window.
+    # span == 0 is allowed; span < 0 raises InvalidParameters here.
+    window = spec.build_window(start_date, end_date)
 
-    start_dt = datetime.datetime.strptime(start_date, "%d-%m-%Y").replace(
-        tzinfo=datetime.timezone.utc
+    # SPEC-FIAT-01: resolve fiat by the fixed priority, never hard-coded.
+    convert_id, canonical_fiat, fiat_source = spec.resolve_fiat(fiat)
+
+    identity = spec.normalize_coin(coin_code, coin_name)
+
+    # SPEC-SNAP-01 / SPEC-SRC-01: read snapshot signals before deciding.
+    snap = _read_snapshot(
+        identity, window, now=now, bundle=snapshot_bundle
     )
-    end_dt = datetime.datetime.strptime(end_date, "%d-%m-%Y").replace(
-        tzinfo=datetime.timezone.utc
+    snapshot_available = bool(snap and snap["covered"])
+    age_days = snap["age_days"] if snap else None
+    decision = spec.decide_source(
+        window["span_days"], age_days, snapshot_available
+    )
+    chosen = force_source or decision["source"]
+    if force_source:
+        decision = dict(decision)
+        decision["forced"] = force_source
+
+    provenance = {
+        "source": chosen,
+        "degraded": bool(decision.get("degraded")),
+        "reason": decision.get("reason"),
+        "basis": decision.get("basis"),
+        "span_days": window["span_days"],
+        "snapshot_age_days": age_days,
+        "snapshot_covered": snapshot_available,
+        "span_votes": decision.get("span_votes"),
+        "age_votes": decision.get("age_votes"),
+        "coin": identity,
+        "fiat": {"code": canonical_fiat, "id": convert_id, "source": fiat_source},
+        "window": {
+            "time_start_exclusive": int(window["wire_start"].timestamp()),
+            "time_end_inclusive": int(window["wire_end"].timestamp()),
+            "units": "seconds",
+        },
+        "snapshot_fills": 0,
+        "snapshot_dropped": 0,
+        "snapshot_generated_at": None,
+        "chunk_boundaries": [],
+    }
+
+    if chosen == "snapshot":
+        if not snapshot_available:
+            # A forced/decided snapshot without coverage cannot be served.
+            raise InvalidParameters(
+                "Snapshot does not cover the requested range (SPEC-SNAP-01)."
+            )
+        coin_id = id_number
+        result_json = _build_result_envelope(
+            identity, snap["quotes"], coin_id
+        )
+        result_json["data"]["__cell_sources__"] = snap["cell_sources"]
+        provenance["snapshot_fills"] = snap["fills"]
+        provenance["snapshot_dropped"] = snap["dropped"]
+        provenance["snapshot_generated_at"] = snap["generated_at"]
+        result_json["__provenance__"] = provenance
+        return result_json
+
+    coin_id = id_number if id_number else get_coin_id(
+        coin_code, coin_name, transport=transport
+    )
+    return _download_live(
+        window, coin_id, convert_id, identity, transport, provenance
     )
 
+
+def _download_live(window, coin_id, convert_id, identity, transport, provenance):
+    """Fetch yearly half-open chunks and merge (SPEC-WIN-01)."""
     try:
-        # CMC caps responses at ~365 entries per request; split into yearly chunks
-        # so long/all-time ranges always return daily granularity.
-        # timeStart is exclusive (first returned day = timeStart + 1), so each
-        # chunk's timeStart equals the previous chunk's timeEnd — no overlap, no gap.
         all_quotes = []
         result_json = None
-        chunk_start = start_dt - datetime.timedelta(days=1)
-
-        while chunk_start < end_dt:
-            chunk_end = min(chunk_start + datetime.timedelta(days=365), end_dt)
+        for chunk_start, chunk_end in spec.iter_chunks(window):
+            # Wire units are fixed UTC epoch SECONDS (SPEC-WIN-01).
+            time_start = int(chunk_start.timestamp())
+            time_end = int(chunk_end.timestamp())
+            spec.assert_same_units(time_start, time_end)
+            provenance["chunk_boundaries"].append([time_start, time_end])
             api_url = (
                 "{}/cryptocurrency/historical"
                 "?id={}&convertId={}&timeStart={}&timeEnd={}"
             ).format(
-                _CMC_DATA_API,
-                coin_id,
-                convert_id,
-                int(chunk_start.timestamp()),
-                int(chunk_end.timestamp()),
+                _CMC_DATA_API, coin_id, convert_id, time_start, time_end
             )
-            json_data = get_url_data(api_url).json()
+            json_data = transport(api_url).json()
             status = json_data.get("status", {})
             error_code = status.get("error_code")
-            if error_code and str(error_code) != "0":
+            if error_code is not None and str(error_code) != "0":
                 raise Exception(status.get("error_message", "Unknown error"))
             if result_json is None:
                 result_json = json_data
             all_quotes.extend(json_data["data"]["quotes"])
-            chunk_start = chunk_end + datetime.timedelta(days=1)
 
         result_json["data"]["quotes"] = all_quotes
+        live_sources = []
+        for quote in all_quotes:
+            _vals, tags, _dropped = spec.parse_quote_row(quote, "live")
+            live_sources.append(tags or [])
+        result_json["data"]["__cell_sources__"] = live_sources
 
-        if id_number:
-            show_coin_info = False
-            if coin_code and coin_code.upper() != result_json["data"]["symbol"].upper():
-                print(
-                    f"INFO: Using 'id_number'! The 'coin_code' ({coin_code}) provided "
-                    + "is different from the symbol returned."
-                )
-                show_coin_info = True
-            if coin_name and coin_name.lower() != result_json["data"]["name"].lower():
-                print(
-                    f"INFO: Using 'id_number'! The 'coin_name' ({coin_name}) provided "
-                    + "is different from the name returned."
-                )
-                show_coin_info = True
-            if show_coin_info:
-                print(
-                    f"""The returned data belongs to coin "{result_json['data']['name']}", """
-                    + f"""with symbol "{result_json['data']['symbol']}" """
-                )
-        return result_json
-    except Exception as e:
-        print(
-            "Error fetching price data for {} for interval '{}' and '{}'".format(
-                f"(id {id_number})" if id_number else coin_code,
-                start_date,
-                end_date,
+        if identity["requested_code"] is not None and result_json["data"].get(
+            "symbol"
+        ) and identity["requested_code"].upper() != result_json["data"][
+            "symbol"
+        ].upper():
+            print(
+                "INFO: id used; requested coin_code ({}) differs from "
+                "returned symbol.".format(identity["requested_code"])
             )
-        )
-        print("Error message (download_data) :", e)
-        raise e
 
-
-def _replace(s, bad_chars):
-    if sys.version_info > (3, 0):
-        # For Python 3
-        without_bad_chars = str.maketrans("", "", bad_chars)
-        return s.translate(without_bad_chars)
-    else:
-        # For Python 2
-        import string
-
-        identity = string.maketrans("", "")
-        return s.translate(identity, bad_chars)
-
-
-class InvalidParameters(ValueError):
-    """Passed parameters are invalid."""
-
-
-class InvalidCoinCode(NotImplementedError):
-    """This coin code is unavailable on 'coinmarketcap.com'"""
+        result_json["__provenance__"] = provenance
+        return result_json
+    except Exception as exc:
+        print("Error message (download_data) :", exc)
+        raise

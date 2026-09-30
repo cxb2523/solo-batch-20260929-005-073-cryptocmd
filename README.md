@@ -91,6 +91,29 @@ df = scraper.get_dataframe()
 
 `Date, Open, High, Low, Close, Volume, Market Cap, Time Open, Time High, Time Low, Time Close`
 
+## Value-taking specification & replay audit
+
+Every value-taking rule (canonical coin names, the alias table, `fiat_ids`
+priority, pagination-window semantics and table-column parsing) is declared in
+exactly one place, `cryptocmd/spec.py`. `core.py` and `utils.py` evaluate that
+module instead of hard-coding mappings or boundaries.
+
+Live capture vs. the built-in snapshot (`cryptocmd/snapshots.json`) is chosen
+jointly from the **request span** and the **snapshot age**. On a conflict the
+snapshot wins and the result carries a degraded flag; snapshot fields filled
+from spec defaults are tagged `snapshot.default` so they are never confused
+with real captured values.
+
+Replay recorded responses through both paths and open the comparison page:
+
+```sh
+python tools/spec_replay.py            # print both paths + HTML comparison
+python tools/spec_replay.py --strict   # assert expectations and the baseline
+```
+
+The generated page (`tools/replay_out/replay_report.html`) links every
+conclusion to the exact spec clause and the implementing function/line.
+
 ## Acknowledgements
 
 The data is being scrapped from
